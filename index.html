@@ -1595,137 +1595,154 @@ window.onload=()=>{ updateModeUI(); updateUILanguage(); renderRank(); setTimeout
 </body>
 </html>
 </textarea>
-<!-- 10. 最终完美版：设备检测增强 + 完美自适应布局 + 邮件 -->
+<!-- ✅ [替换] 最终统合版 Script：修复电脑误判 + PWA补全 + 图形报告 + 防崩溃 -->
     <script>
-        (function() {
-            // === ⬇️ 邮箱设置 ⬇️ ===
-            var myEmail = "yangxb@synu.edu.cn"; 
-            // ====================
+    (function() {
+        // === ⬇️ 邮箱设置 ⬇️ ===
+        var myEmail = "yangxb@synu.edu.cn"; 
+        // ====================
 
-            var mCode = document.getElementById('code-mobile').value;
-            var pCode = document.getElementById('code-pc').value;
+        var mCode = document.getElementById('code-mobile').value;
+        var pCode = document.getElementById('code-pc').value;
+        
+        // =========================================================
+        // 🔧 1. 设备检测逻辑 (修复触摸屏电脑误判)
+        // =========================================================
+        var ua = navigator.userAgent;
+        var isMobile = false;
+
+        // A. 明确的移动设备标识 (白名单)
+        var isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        var isAndroid = /Android/i.test(ua);
+        
+        // B. 硬件特征检测 (关键修复：有鼠标=电脑)
+        // 这一步能救活 Surface 和 触摸屏笔记本
+        var hasFinePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+
+        if (isIOS || isAndroid) {
+            isMobile = true;
+        } else if (hasFinePointer) {
+            isMobile = false; // 有鼠标，强制认作电脑
+        } else {
+            // 兜底：既非明确移动OS，又无鼠标，且屏幕窄 -> 算移动端
+            isMobile = (window.innerWidth <= 1024 && navigator.maxTouchPoints > 0);
+        }
+
+        // =========================================================
+        // 🚀 2. 代码处理与功能注入
+        // =========================================================
+        var finalCode = "";
+        var isPCMode = false;
+        
+        if (isMobile) {
+            finalCode = mCode.length > 50 ? mCode : pCode;
+        } else {
+            finalCode = pCode.length > 50 ? pCode : mCode;
+            isPCMode = (pCode.length > 50);
+        }
+
+        if (finalCode.length > 50) {
             
-            // 1. 设备检测 (增强版)
-            var ua = navigator.userAgent;
-            // A. 常见手机/平板关键词
-            var basicMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
-            // B. iPad Pro (伪装成电脑的)
-            var isIpad = (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-            // C. 宽屏平板/触屏本 (核心修正：放宽到 1366px 且支持触屏，或者 1024px 以下任意设备)
-            var isTablet = (window.innerWidth <= 1024) || (navigator.maxTouchPoints > 0 && window.innerWidth <= 1366);
+            // --- A. 【PWA 功能补回】防止页面重写后图标丢失 ---
+            // 这一步非常重要！确保 manifest 和 sw.js 在游戏加载后依然有效
+            var pwaPatch = `
+            <link rel="manifest" href="manifest.json">
+            <link rel="apple-touch-icon" href="icon.png">
+            <meta name="apple-mobile-web-app-capable" content="yes">
+            <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+            <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js');});}<\/script>
+            `;
             
-            var isMobile = basicMobile || isIpad || isTablet;
+            // --- B. 【图表报告样式】 ---
+            var chartStyles = `
+            <style>
+                .rep-chart-row { display:flex; align-items:center; margin:6px 0; font-size:11px; }
+                .rep-chart-lbl { width:65px; text-align:right; margin-right:8px; color:#94a3b8; }
+                .rep-chart-bg { flex:1; height:8px; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden; }
+                .rep-chart-fill { height:100%; border-radius:4px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+                .rep-chart-val { width:30px; text-align:right; color:#fff; font-weight:bold; font-family:monospace; margin-left:5px; }
+                .rep-analysis { background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.2); padding:10px; border-radius:8px; margin:10px 0; font-size:12px; color:#bfdbfe; text-align:left; line-height:1.4; }
+            </style>
+            `;
 
-            // 2. 选取代码
-            var finalCode = "";
-            var isPCMode = false;
-            if (isMobile) {
-                finalCode = mCode.length > 100 ? mCode : pCode;
-            } else {
-                finalCode = pCode.length > 100 ? pCode : mCode;
-                isPCMode = (pCode.length > 100);
-            }
+            // 注入头部补丁
+            finalCode = finalCode.replace('</head>', pwaPatch + chartStyles + '</head>');
 
-            // 3. 执行修改
-            if (finalCode.length > 100) {
-                
-                // --- A. 注入邮件功能 ---
-                var mailLogic = "";
-                if (isPCMode) {
-                    mailLogic = `window.location.href = "mailto:${myEmail}?subject=ChemSnake_Report&body=" + encodeURIComponent(text);`;
-                    finalCode = finalCode.replace("navigator.clipboard.writeText(text)", mailLogic + " navigator.clipboard.writeText(text)");
-                } else {
-                    mailLogic = `window.location.href = "mailto:${myEmail}?subject=ChemSnake_Report&body=" + encodeURIComponent(txt);`;
-                    finalCode = finalCode.replace("navigator.clipboard.writeText(txt)", mailLogic + " navigator.clipboard.writeText(txt)");
+            // --- C. 【移动端专属增强】 (修复语法错误的关键部分) ---
+            if (!isPCMode) {
+                // 1. 定义新的图形化报告逻辑
+                var newReportLogic = `
+                // --- 覆盖旧的报告函数 (Append模式，防崩溃) ---
+                function generateReport(){
+                    // 1. 基础信息
+                    document.getElementById('reportHeader').innerHTML = \`<span>👤 \${playerInfo.name}</span><span>🆔 \${playerInfo.id || '-'}</span>\`;
+                    var acc = gameStats.total > 0 ? Math.round((gameStats.correct/gameStats.total)*100) : 0;
+                    document.getElementById('repAcc').textContent = acc + "%";
+                    document.getElementById('repTotal').textContent = gameStats.total;
+
+                    // 2. 智能评语 (S/A/B/C)
+                    var analysisHTML = "";
+                    if(acc >= 90) analysisHTML = "<div class='rep-analysis'>🌟 <b>S级 (卓越)</b><br>有机化学基础非常扎实！</div>";
+                    else if(acc >= 70) analysisHTML = "<div class='rep-analysis'>👍 <b>A级 (优秀)</b><br>表现不错，建议关注下方错题。</div>";
+                    else if(acc >= 50) analysisHTML = "<div class='rep-analysis'>⚠️ <b>B级 (良好)</b><br>基础尚可，反应条件需加强记忆。</div>";
+                    else analysisHTML = "<div class='rep-analysis'>🛑 <b>C级 (加油)</b><br>错误较多，建议回归课本梳理转化关系。</div>";
+
+                    // 3. 动态图表数据
+                    var dim1 = Math.min(100, Math.max(20, acc + (combo>3?10:-5)));
+                    var dim2 = Math.min(100, Math.max(20, acc + (gameStats.mistakes.length<2?10:-10)));
+                    var dim3 = Math.min(100, Math.max(30, (acc*0.8 + 20)));
                     
-                    // --- B. 【移动版布局 V9 (保留完美版)】 ---
-                    
-                    // 1. 【视野最大化】(Top:60, Bot:160)
-                    finalCode = finalCode.replace("const topM = 110; const botM = 130;", "const topM = 60; const botM = 160;");
+                    var chartHTML = '<div style="margin:15px 0; border-top:1px solid #334155; padding-top:10px;">';
+                    chartHTML += '<div style="font-size:10px; color:#94a3b8; margin-bottom:5px;">📊 能力分析 (Ability)</div>';
+                    function drawBar(l, v, c) { return \`<div class="rep-chart-row"><div class="rep-chart-lbl">\${l}</div><div class="rep-chart-bg"><div class="rep-chart-fill" style="width:\${v}%; background:\${c}"></div></div><div class="rep-chart-val">\${v}</div></div>\`; }
+                    chartHTML += drawBar("反应机理", dim1, dim1>80?"#4ade80":"#facc15");
+                    chartHTML += drawBar("答题精准", dim2, dim2>80?"#4ade80":"#ef4444");
+                    chartHTML += drawBar("熟练度", dim3, "#60a5fa");
+                    chartHTML += '</div>';
 
-                    // 2. 【缩小气泡字体】
-                    finalCode = finalCode.replace('ctx.font = "bold 13px sans-serif";', 'ctx.font = "bold 10px sans-serif";');
-                    
-                    // 3. 【CSS补丁：自适应箭头 + 垂直对齐】
-                    var cssPatch = `
-                    <style>
-                        /* 1. 顶部容器：Flex布局，垂直居中 */
-                        .eq-container { 
-                            display: flex !important;
-                            flex-direction: row !important;
-                            align-items: center !important;
-                            justify-content: center !important;
-                            gap: 4px !important;
-                            padding: 2px 5px !important;
-                            width: 100% !important;
-                            box-sizing: border-box !important;
-                            transform: scale(0.95);
-                        }
+                    // 4. 错题列表
+                    const list = document.getElementById('repWrongList'); list.innerHTML = "";
+                    if(gameStats.mistakes.length === 0) list.innerHTML = "<div style='text-align:center; padding:15px; color:#4ade80'>🎉 完美！无错题！</div>";
+                    else gameStats.mistakes.forEach(m=>{ list.innerHTML += \`<div class="wrong-item" style="border-left:2px solid #ef4444; padding-left:8px; margin-bottom:6px;"><div style="color:#cbd5e1;font-size:11px;">\${m.q}</div><div style="color:#ef4444;font-weight:bold;">❌ \${m.w}</div></div>\`; });
 
-                        /* 2. 左右部分：平分空间，内部垂直堆叠居中 */
-                        .eq-left, .eq-right {
-                            flex: 1 !important;
-                            display: flex !important;
-                            flex-direction: column !important;
-                            justify-content: center !important;
-                            align-items: center !important;
-                            text-align: center !important;
-                            min-width: 0 !important;
-                        }
+                    // 5. 插入页面
+                    var header = document.getElementById('reportHeader');
+                    var chartArea = document.getElementById('repChartArea');
+                    if(!chartArea) { chartArea = document.createElement('div'); chartArea.id = 'repChartArea'; header.parentNode.insertBefore(chartArea, header.nextSibling); }
+                    chartArea.innerHTML = analysisHTML + chartHTML;
 
-                        /* 3. 中间部分：宽度自适应 */
-                        .eq-mid {
-                            flex: 0 0 auto !important;
-                            width: auto !important;
-                            min-width: 30px !important;
-                            display: flex !important;
-                            flex-direction: column !important;
-                            justify-content: center !important;
-                            align-items: center !important;
-                            margin: 0 2px !important;
-                        }
-
-                        /* 4. 反应条件文字 */
-                        .eq-cond {
-                             position: static !important;
-                             transform: none !important;
-                             font-size: 9px !important;
-                             white-space: nowrap !important;
-                             line-height: 1.2 !important;
-                             margin-bottom: -2px !important;
-                        }
-
-                        /* 5. 箭头线 */
-                        .eq-arrow-line {
-                            position: relative !important;
-                            width: 100% !important;
-                            height: 2px !important;
-                            background: #cbd5e1 !important;
-                        }
-                        .eq-arrow-line::after { right: 0 !important; }
-
-                        /* 6. 化学式 */
-                        .chem-formula { 
-                            white-space: nowrap !important;
-                            font-size: clamp(10px, 3.5vw, 16px) !important; 
-                            line-height: 1.1 !important;
-                        }
-                        
-                        .chem-name { font-size: 9px !important; opacity: 0.8; margin-top: 1px !important; }
-                        .top-bar { padding: 0 !important; }
-                    </style>
-                    `;
-                    finalCode = finalCode.replace('</head>', cssPatch + '</head>');
+                    closeModal('gameOverModal'); openModal('reportModal');
                 }
-
-                document.open();
-                document.write(finalCode);
-                document.close();
+                `;
+                
+                // 【核心修复】不使用 replace 修改旧代码，而是直接追加到文件末尾
+                // 这样新的函数会覆盖旧的函数，绝对不会导致手机端语法错误
+                finalCode = finalCode.replace('</body>', '<script>' + newReportLogic + '<\/script></body>');
+                
+                // 2. 布局优化 (视野调整)
+                finalCode = finalCode.replace("const topM = 110; const botM = 130;", "const topM = 60; const botM = 160;");
+                finalCode = finalCode.replace('ctx.font = "bold 13px sans-serif";', 'ctx.font = "bold 10px sans-serif";');
+                
+                // 3. 样式补丁 (修复方程式对齐)
+                var cssPatch = `<style>.eq-container{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:4px!important;padding:2px 5px!important;width:100%!important;box-sizing:border-box!important;transform:scale(0.95);background:rgba(0,0,0,0.4);border-radius:10px;border:1px solid rgba(255,255,255,0.05);margin:0 5px 5px 5px}.eq-left,.eq-right{flex:1!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;text-align:center!important;min-width:0!important}.eq-mid{flex:0 0 auto!important;width:auto!important;min-width:30px!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;margin:0 2px!important}.eq-cond{position:static!important;transform:none!important;font-size:9px!important;color:#facc15;white-space:nowrap!important;line-height:1.2!important;margin-bottom:-2px!important;text-shadow:0 0 3px #000}.eq-arrow-line{position:relative!important;width:100%!important;height:2px!important;background:#cbd5e1!important;border-radius:2px}.eq-arrow-line::after{content:"";position:absolute;right:-1px;top:-3px;border-left:5px solid #cbd5e1;border-top:4px solid transparent;border-bottom:4px solid transparent}.chem-formula{white-space:nowrap!important;font-size:clamp(10px,3.5vw,16px)!important;line-height:1.1!important;font-weight:800}.top-bar{padding:0!important}</style>`;
+                finalCode = finalCode.replace('</head>', cssPatch + '</head>');
+                
+                // 4. 邮件功能 (移动端变量名 txt)
+                var mailLogic = `window.location.href = "mailto:${myEmail}?subject=ChemSnake_Report&body=" + encodeURIComponent(txt);`;
+                finalCode = finalCode.replace("navigator.clipboard.writeText(txt)", mailLogic + " navigator.clipboard.writeText(txt)");
             } else {
-                document.querySelector('.loader').innerHTML = "❌ 错误：代码加载失败。";
-                document.querySelector('.loader').style.color = "#ef4444";
+                // PC 版邮件功能 (PC端变量名 text)
+                var mailLogicPC = `window.location.href = "mailto:${myEmail}?subject=ChemSnake_Report&body=" + encodeURIComponent(text);`;
+                finalCode = finalCode.replace("navigator.clipboard.writeText(text)", mailLogicPC + " navigator.clipboard.writeText(text)");
             }
-        })();
+
+            document.open();
+            document.write(finalCode);
+            document.close();
+        } else {
+            document.querySelector('.loader').innerHTML = "❌ 错误：代码加载失败";
+        }
+    })();
     </script>
     </body>
 </html>
