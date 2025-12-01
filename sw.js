@@ -1,6 +1,5 @@
-// 每次修改文件后，这里的版本号最好改一下（比如 v3 -> v4），让浏览器知道有新东西
-const CACHE_NAME = 'chemsnake-v3-full';
-
+// 原来是 v3，改成 v4 或者其他数字
+const CACHE_NAME = 'chemsnake-v4-fix';
 // 🎒 离线背包清单：必须把所有用到的文件都写在这里
 const urlsToCache = [
   './',
