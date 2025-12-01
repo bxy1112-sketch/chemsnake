@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>CJ ChemSnake 融合版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { background-color: #0f172a; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; overflow: hidden; }
+        .loader { font-size: 20px; opacity: 0.7; }
+        textarea { display: none; }
+    </style>
+</head>
+<body>
+    <div class="loader">正在检测设备并加载对应版本...<br>Detecting Device...</div>
+
+    <textarea id="code-mobile">
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>CJ ChemSnake V75</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<style>
+  /* =================================================================
+     [Style] V75 双全版 (加速+重开)
+     ================================================================= */
+  :root {
+    --bg: #0f172a;
+    --glass: rgba(15, 23, 42, 0.95);
+    --primary: #3b82f6;
+    --accent: #facc15;
+    --text: #e2e8f0;
+    --pad-body: #334155;
+  }
+
+  html, body {
+    height: 100%; margin: 0; overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--text);
+    touch-action: none; user-select: none; -webkit-user-select: none;
+  }
+
+  canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+
+  /* --- HUD --- */
+  #hudLayer {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 10;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+
+  .top-bar {
+    pointer-events: auto;
+    background: var(--glass);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 6px 12px;
+    padding-top: env(safe-area-inset-top, 5px);
+    display: flex; flex-direction: column; gap: 5px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+
+  .status-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: bold; color: #94a3b8; }
+  .score-badge { background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.4); padding: 2px 10px; border-radius: 99px; color: #fff; }
+
+  .eq-container {
+    background: rgba(0, 0, 0, 0.4); border-radius: 10px;
+    padding: 8px; 
+    display: grid; grid-template-columns: 1fr auto 1fr; 
+    align-items: center; gap: 6px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .eq-part { display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+  .eq-left { align-items: flex-end; text-align: right; }
+  .eq-right { align-items: flex-start; text-align: left; }
+  
+  .chem-formula { font-size: 16px; font-weight: 800; line-height: 1.1; white-space: nowrap; }
+  .eq-left .chem-formula { color: #60a5fa; } .eq-right .chem-formula { color: #4ade80; }
+  .chem-name { font-size: 10px; color: #94a3b8; margin-top: 1px; white-space: nowrap; }
+
+  .eq-mid { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; align-items: center; justify-items: center; min-width: 36px; }
+  .eq-cond { grid-area: 1/1; font-size: 9px; color: var(--accent); white-space: nowrap; transform: translateY(-7px); z-index: 2; text-shadow: 0 0 3px #000; }
+  .eq-arrow-line { grid-area: 1/1; width: 100%; height: 2px; background: #cbd5e1; position: relative; border-radius: 2px; z-index: 1; }
+  .eq-arrow-line::after { content:""; position:absolute; right:-1px; top:-3px; border-left:5px solid #cbd5e1; border-top:4px solid transparent; border-bottom:4px solid transparent; }
+  .eq-unknown { color: #64748b; font-family: monospace; letter-spacing: 2px; font-size: 18px; }
+
+  /* --- 底部控制 --- */
+  .bottom-controls {
+    pointer-events: none;
+    padding: 5px 15px;
+    padding-bottom: calc(15px + env(safe-area-inset-bottom, 5px));
+    display: flex; justify-content: space-between; align-items: flex-end;
+  }
+
+  /* 十字键 */
+  .dpad-container { pointer-events: auto; position: relative; width: 130px; height: 130px; }
+  .dpad-body {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 120px; height: 120px; background: var(--pad-body); opacity: 0.85;
+    clip-path: polygon(33% 0%, 67% 0%, 67% 33%, 100% 33%, 100% 67%, 67% 67%, 67% 100%, 33% 100%, 33% 67%, 0% 67%, 0% 33%, 33% 33%);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5); filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
+  }
+  .dpad-center {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 18px; height: 18px; background: radial-gradient(circle, #2c3646 0%, #1e293b 100%);
+    border-radius: 50%; pointer-events: none; z-index: 5;
+  }
+  .dpad-btn {
+    position: absolute; display: flex; justify-content: center; align-items: center;
+    color: rgba(255,255,255,0.25); font-size: 20px; font-weight: 900;
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent; z-index: 10;
+  }
+  .dpad-btn:active { color: var(--accent); transform: scale(0.9); }
+  #btn-up { top: 0; left: 33%; width: 34%; height: 33%; padding-bottom: 5px; }
+  #btn-down { bottom: 0; left: 33%; width: 34%; height: 33%; padding-top: 5px; }
+  #btn-left { left: 0; top: 33%; width: 33%; height: 34%; padding-right: 5px; }
+  #btn-right { right: 0; top: 33%; width: 33%; height: 34%; padding-left: 5px; }
+
+  /* 1大3小 布局 */
+  .action-area { 
+    pointer-events: auto; 
+    display: grid; 
+    grid-template-columns: auto auto; /* 两列 */
+    gap: 10px; 
+    align-items: end; 
+    padding-bottom: 5px; 
+  }
+  
+  /* 左列：功能小键 */
+  .sub-actions {
+    display: flex; flex-direction: column; gap: 10px; align-items: center;
+  }
+  
+  /* 右列：加速大键 */
+  .main-action {
+    display: flex; align-items: flex-end;
+  }
+
+  .action-btn { 
+    border-radius: 50%; border: none; color: #fff;
+    display: flex; justify-content: center; align-items: center; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
+    position: relative; overflow: hidden; touch-action: manipulation;
+  }
+  .action-btn::before { content:""; position:absolute; top:0; left:0; width:100%; height:100%; background:linear-gradient(rgba(255,255,255,0.1), transparent); }
+  .action-btn:active { transform: translateY(2px) scale(0.95); }
+
+  /* 火箭键 */
+  #btn-boost {
+    width: 65px; height: 65px; font-size: 28px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb); border: 2px solid #60a5fa;
+  }
+  
+  /* 小功能键 */
+  .btn-sm {
+    width: 42px; height: 42px; font-size: 18px;
+    background: linear-gradient(135deg, #334155, #1e293b); border: 1px solid #475569; opacity: 0.9;
+  }
+  #btn-restart { color: #4ade80; border-color: #22c55e; } /* 绿色重开 */
+
+  #footer {
+    position: fixed; bottom: 5px; left: 0; width: 100%;
+    text-align: center; font-size: 9px; color: #475569;
+    pointer-events: none; z-index: 5; opacity: 0.5;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Modal */
+  .modal-mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-mask.active { opacity: 1; pointer-events: auto; }
+  .modal-box { background: linear-gradient(145deg, #0f172a, #1e293b); border: 1px solid #334155; border-radius: 20px; padding: 25px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,1); max-height: 90vh; overflow-y: auto; }
+  
+  .brand-area { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .game-icon { width: 64px; height: 64px; filter: drop-shadow(0 0 15px rgba(59,130,246,0.6)); animation: pulse 3s infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
+  .modal-h { font-size: 26px; color: #fff; font-weight: 900; margin: 0; letter-spacing: 1px; text-shadow: 0 0 15px rgba(59,130,246,0.6); }
+  .modal-sub { color: #94a3b8; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+
+  .modal-input { 
+    background:#020617; border:2px solid #3b82f6; color:#facc15; 
+    font-size:18px; padding:12px; width:85%; text-align:center; font-family: sans-serif;
+    margin-bottom: 15px; border-radius: 10px; display: block; margin-left: auto; margin-right: auto;
+  }
+  .modal-input:focus { outline: none; border-color: #facc15; box-shadow: 0 0 10px rgba(250,204,21,0.3); }
+
+  .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+  .btn-wide { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: bold; font-size: 16px; cursor: pointer; transition: all 0.1s; }
+  .btn-wide:active { transform: scale(0.98); }
+  .bg-blue { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(59,130,246,0.3); }
+  .bg-green { background: #10b981; color: white; box-shadow: 0 4px 15px rgba(16,185,129,0.3); }
+  .bg-purple { background: #8b5cf6; color: white; border: 1px solid #7c3aed; }
+  .bg-gray { background: transparent; color: #94a3b8; border: 1px solid #334155; }
+  
+  .setting-row { display: flex; gap: 10px; margin-bottom: 10px; }
+  .bg-lang { background: rgba(255,255,255,0.05); color: #a5b4fc; border: 1px solid #6366f1; font-size: 13px; padding: 8px; border-radius: 8px; flex:1; cursor: pointer;}
+  
+  select { background: #1e293b; color: white; border: 1px solid #475569; padding: 12px; border-radius: 10px; width: 100%; margin-bottom: 12px; font-size: 14px; appearance: none; -webkit-appearance: none; text-align: center; }
+
+  .report-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; text-align:left; margin-bottom:15px; }
+  .report-card { background:rgba(255,255,255,0.05); padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); }
+  .report-lbl { font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; }
+  .report-val { font-size:22px; font-weight:800; color:#fff; margin-top:4px; }
+  .wrong-list { max-height:120px; overflow-y:auto; text-align:left; font-size:12px; background:#020617; padding:10px; border-radius:10px; color:#94a3b8; margin-top:10px; border:1px solid #334155;}
+  .wrong-item { border-bottom:1px dashed #334155; padding:6px 0; line-height:1.4; }
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="hudLayer">
+  <div class="top-bar">
+    <div class="status-row">
+      <div style="display:flex; gap:8px; align-items:center;">
+        <span class="score-badge">🏆 <span id="scoreVal">0</span></span>
+        <span style="color:var(--accent); font-size:12px;">COMBO x<span id="comboVal">0</span></span>
+      </div>
+      <div id="chapterDisplay" style="font-size:10px; opacity:0.8; font-weight:bold; color:#a5b4fc;">ALL</div>
+    </div>
+    
+    <div class="eq-container">
+      <div class="eq-part eq-left" id="eqLeft">CH4</div>
+      <div class="eq-mid">
+          <div class="eq-cond" id="eqCond">Light</div>
+          <div class="eq-arrow-line"></div>
+      </div>
+      <div class="eq-part eq-right" id="eqRight">???</div>
+    </div>
+  </div>
+
+  <div class="bottom-controls">
+    <div class="dpad-container">
+      <div class="dpad-body"></div>
+      <div class="dpad-center"></div>
+      <div class="dpad-btn" id="btn-up">▲</div>
+      <div class="dpad-btn" id="btn-down">▼</div>
+      <div class="dpad-btn" id="btn-left">◀</div>
+      <div class="dpad-btn" id="btn-right">▶</div>
+    </div>
+
+    <div class="action-area">
+      <div class="sub-actions">
+        <button class="action-btn btn-sm" id="btn-restart" title="New Game">🔄</button>
+        <button class="action-btn btn-sm" id="btn-pause" title="Pause">⏸</button>
+        <button class="action-btn btn-sm" id="btn-setting" title="Settings">⚙️</button>
+      </div>
+      <div class="main-action">
+        <button class="action-btn" id="btn-boost" title="Hold to Boost">🚀</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="footer">CJ 工作室出品 / Made by CJ Studio</div>
+
+<div class="modal-mask active" id="mainModal">
+  <div class="modal-box">
+    <div class="brand-area">
+      <svg class="game-icon" viewBox="0 0 100 100" fill="none" stroke="url(#gradIcon)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+        <defs><linearGradient id="gradIcon" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#3b82f6" /><stop offset="100%" style="stop-color:#ef4444" /></linearGradient></defs>
+        <path d="M50 5 L90 27 V73 L50 95 L10 73 V27 Z" />
+        <path d="M35 35 Q65 35 65 50 Q65 65 35 65" stroke="#facc15" stroke-width="5" />
+        <circle cx="35" cy="35" r="3" fill="#facc15" stroke="none"/>
+      </svg>
+      <div>
+        <div class="modal-h">CJ ChemSnake</div>
+        <div class="modal-sub">Ultimate Mobile Edition</div>
+      </div>
+    </div>
+
+    <div id="settingPanel">
+      <div class="setting-row">
+        <button class="bg-lang" onclick="toggleLang()" id="langBtn">🌐 语言: 中文</button>
+        <button class="bg-lang bg-purple" onclick="document.getElementById('fileInput').click()" style="color:white; border-color:#8b5cf6;">📂 导入 / Import</button>
+      </div>
+      <select id="chapterSelect"></select>
+      <select id="diffSelect">
+        <option value="1">Lv.1 基础 (Basic)</option>
+        <option value="2">Lv.2 进阶 (Adv)</option>
+        <option value="3" selected>Lv.3 挑战 (Hard)</option>
+      </select>
+    </div>
+    <div class="btn-group">
+      <button class="btn-wide bg-blue" onclick="initGame()" id="uiStart">开始游戏</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask" id="gameOverModal">
+  <div class="modal-box">
+    <div style="font-size:40px;">😭</div>
+    <div class="modal-h" id="uiOver">Game Over</div>
+    <div id="deathReason" style="color:#ef4444; font-size:14px; margin-bottom:10px;">Died</div>
+    <div style="font-size:24px; color:#facc15; font-weight:bold; margin-bottom:15px;">
+      Score: <span id="finalScore">0</span>
+    </div>
+    <div class="btn-group">
+      <button class="btn-wide bg-blue" onclick="initGame()" id="uiReplay">再玩一次</button>
+      <button class="btn-wide bg-green" onclick="checkLogin()" id="uiReport">📊 生成学习报告</button>
+      <button class="btn-wide bg-gray" onclick="location.reload()" id="uiExit">退出</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask" id="loginModal">
+  <div class="modal-box">
+    <div class="modal-h" id="uiLoginTitle">考生信息</div>
+    <input id="nameInput" class="modal-input" placeholder="姓名 / Name" type="text">
+    <input id="idInput" class="modal-input" placeholder="学号 / ID" type="text" inputmode="numeric">
+    
+    <div class="btn-group">
+      <button class="btn-wide bg-blue" onclick="submitLogin()" id="uiConfirm">确认</button>
+      <button class="btn-wide bg-gray" onclick="closeModal('loginModal')" id="uiCancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask" id="reportModal">
+  <div class="modal-box" style="max-width:450px;">
+    <div class="modal-h" id="uiRepTitle">🧪 分析报告</div>
+    <div id="reportHeader" style="font-size:12px; color:#94a3b8; border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:10px;"></div>
+    <div style="display:flex; justify-content:space-between; margin-bottom:10px; text-align:left;">
+      <div><div style="font-size:10px; color:#94a3b8" id="uiAcc">正确率</div><div style="font-size:20px; font-weight:bold; color:#fff" id="repAcc">0%</div></div>
+      <div><div style="font-size:10px; color:#94a3b8" id="uiTotal">总答题</div><div style="font-size:20px; font-weight:bold; color:#fff" id="repTotal">0</div></div>
+    </div>
+    <div style="text-align:left; font-size:12px; color:#cbd5e1; font-weight:bold; margin-bottom:5px;" id="uiMistakes">📝 错题记录</div>
+    <div id="repWrongList" style="max-height:150px; overflow-y:auto; text-align:left; font-size:12px; background:#020617; padding:8px; border-radius:8px; border:1px solid #334155; color:#94a3b8;"></div>
+    <div class="btn-group">
+      <button class="btn-wide bg-green" onclick="copyReport()" id="uiCopy">📋 复制报告</button>
+      <button class="btn-wide bg-gray" onclick="closeModal('reportModal')" id="uiClose">关闭</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fileInput" style="display:none" accept=".json,.txt">
+
+<audio id="bgm" src="bgm.mp3" loop></audio>
+<audio id="sfxEat" src="eat.mp3"></audio>
+<audio id="sfxDie" src="die.mp3"></audio>
+<audio id="sfxClick" src="click.mp3"></audio>
+
+<script>
+/* ================= DATABASE ================= */
+let compoundsCore = {"CH4":{formula:"CH₄",zh:{name:"甲烷"},en:{name:"Methane"}},"C2H6":{formula:"CH₃CH₃",zh:{name:"乙烷"},en:{name:"Ethane"}},"C2H4":{formula:"CH₂=CH₂",zh:{name:"乙烯"},en:{name:"Ethene"}},"C2H2":{formula:"HC≡CH",zh:{name:"乙炔"},en:{name:"Ethyne"}},"Bz":{formula:"C₆H₆",zh:{name:"苯"},en:{name:"Benzene"}},"Toluene":{formula:"C₆H₅CH₃",zh:{name:"甲苯"},en:{name:"Toluene"}},"Styrene":{formula:"C₆H₅CH=CH₂",zh:{name:"苯乙烯"},en:{name:"Styrene"}},"Cyclohexane":{formula:"C₆H₁₂",zh:{name:"环己烷"},en:{name:"Cyclohexane"}},"13Butadiene":{formula:"C₄H₆",zh:{name:"1,3-丁二烯"},en:{name:"1,3-Butadiene"}},"CH3Cl":{formula:"CH₃Cl",zh:{name:"一氯甲烷"},en:{name:"Chloromethane"}},"C2H5Cl":{formula:"CH₃CH₂Cl",zh:{name:"氯乙烷"},en:{name:"Chloroethane"}},"C2H5Br":{formula:"CH₃CH₂Br",zh:{name:"溴乙烷"},en:{name:"Bromoethane"}},"12Dibromo":{formula:"CH₂BrCH₂Br",zh:{name:"1,2-二溴乙烷"},en:{name:"1,2-Dibromoethane"}},"BzBr":{formula:"C₆H₅Br",zh:{name:"溴苯"},en:{name:"Bromobenzene"}},"PVC_m":{formula:"CH₂=CHCl",zh:{name:"氯乙烯"},en:{name:"Vinyl Chloride"}},"EtOH":{formula:"C₂H₅OH",zh:{name:"乙醇"},en:{name:"Ethanol"}},"Glycol":{formula:"HOCH₂CH₂OH",zh:{name:"乙二醇"},en:{name:"Ethylene Glycol"}},"Phenol":{formula:"C₆H₅OH",zh:{name:"苯酚"},en:{name:"Phenol"}},"TribromoPh":{formula:"C₆H₂Br₃OH",zh:{name:"三溴苯酚"},en:{name:"Tribromophenol"}},"NaPhenolate":{formula:"C₆H₅ONa",zh:{name:"苯酚钠"},en:{name:"Sodium Phenoxide"}},"HCHO":{formula:"HCHO",zh:{name:"甲醛"},en:{name:"Methanal"}},"CH3CHO":{formula:"CH₃CHO",zh:{name:"乙醛"},en:{name:"Ethanal"}},"Glyoxal":{formula:"OHC-CHO",zh:{name:"乙二醛"},en:{name:"Glyoxal"}},"Acetone":{formula:"CH₃COCH₃",zh:{name:"丙酮"},en:{name:"Acetone"}},"BzCHO":{formula:"C₆H₅CHO",zh:{name:"苯甲醛"},en:{name:"Benzaldehyde"}},"HCOOH":{formula:"HCOOH",zh:{name:"甲酸"},en:{name:"Formic Acid"}},"AcOH":{formula:"CH₃COOH",zh:{name:"乙酸"},en:{name:"Acetic Acid"}},"OxalicAcid":{formula:"HOOC-COOH",zh:{name:"乙二酸"},en:{name:"Oxalic Acid"}},"BzOH":{formula:"C₆H₅COOH",zh:{name:"苯甲酸"},en:{name:"Benzoic Acid"}},"EtOAc":{formula:"CH₃COOC₂H₅",zh:{name:"乙酸乙酯"},en:{name:"Ethyl Acetate"}},"MeMethacrylate":{formula:"C₅H₈O₂",zh:{name:"MMA"},en:{name:"MMA"}},"SalicylicAcid":{formula:"C₇H₆O₃",zh:{name:"水杨酸"},en:{name:"Salicylic Acid"}},"Aspirin":{formula:"C₉H₈O₄",zh:{name:"阿司匹林"},en:{name:"Aspirin"}},"NitroBz":{formula:"C₆H₅NO₂",zh:{name:"硝基苯"},en:{name:"Nitrobenzene"}},"Aniline":{formula:"C₆H₅NH₂",zh:{name:"苯胺"},en:{name:"Aniline"}},"Acetanilide":{formula:"C₈H₉NO",zh:{name:"乙酰苯胺"},en:{name:"Acetanilide"}},"TNT":{formula:"TNT",zh:{name:"TNT"},en:{name:"TNT"}},"TribromoAniline":{formula:"C₆H₂Br₃NH₂",zh:{name:"三溴苯胺"},en:{name:"Tribromoaniline"}},"PE":{formula:"[CH₂-CH₂]n",zh:{name:"聚乙烯"},en:{name:"PE"}},"PVC":{formula:"[CH₂-CHCl]n",zh:{name:"聚氯乙烯"},en:{name:"PVC"}},"PS":{formula:"[CH₂-CHPh]n",zh:{name:"聚苯乙烯"},en:{name:"PS"}},"PMMA":{formula:"[PMMA]n",zh:{name:"有机玻璃"},en:{name:"PMMA"}},"PhenolicResin":{formula:"Resin",zh:{name:"酚醛树脂"},en:{name:"Phenolic Resin"}},"PET":{formula:"PET",zh:{name:"PET酯"},en:{name:"PET"}},"Rubber":{formula:"[Rubber]n",zh:{name:"顺丁橡胶"},en:{name:"Rubber"}},"CO2":{formula:"CO₂",zh:{name:"二氧化碳"},en:{name:"CO2"}},"H2O":{formula:"H₂O",zh:{name:"水"},en:{name:"Water"}}};
+let reactionsCore = [{chapter:"hydrocarbon",from:"CH4",to:"CH3Cl",type:"Substitution",cond:{zh:"Cl₂, 光照",en:"Cl₂, Light"}},{chapter:"hydrocarbon",from:"C2H4",to:"C2H6",type:"Addition",cond:{zh:"H₂, Ni, 加热",en:"H₂, Ni, Heat"}},{chapter:"hydrocarbon",from:"C2H4",to:"12Dibromo",type:"Addition",cond:{zh:"Br₂ (CCl₄)",en:"Br₂ (CCl₄)"}},{chapter:"hydrocarbon",from:"C2H4",to:"PE",type:"Polymerisation",cond:{zh:"催化剂, 高温高压",en:"Cat., High P"}},{chapter:"hydrocarbon",from:"C2H2",to:"C2H4",type:"Addition",cond:{zh:"H₂, 催化剂(控制)",en:"H₂, Cat(ctrl)"}},{chapter:"hydrocarbon",from:"Bz",to:"Cyclohexane",type:"Addition",cond:{zh:"3H₂, Ni, 加热",en:"3H₂, Ni, Heat"}},{chapter:"hydrocarbon",from:"Bz",to:"BzBr",type:"Substitution",cond:{zh:"液溴, FeBr₃",en:"Liq. Br₂, FeBr₃"}},{chapter:"halogen",from:"C2H4",to:"C2H5Br",type:"Addition",cond:{zh:"HBr",en:"HBr"}},{chapter:"halogen",from:"C2H5Br",to:"EtOH",type:"Substitution",cond:{zh:"NaOH 水溶液, 加热",en:"NaOH(aq), Heat"}},{chapter:"halogen",from:"C2H5Br",to:"C2H4",type:"Elimination",cond:{zh:"NaOH 醇溶液, 加热",en:"NaOH(alc), Heat"}},{chapter:"halogen",from:"12Dibromo",to:"Glycol",type:"Substitution",cond:{zh:"NaOH 水溶液, 加热",en:"NaOH(aq), Heat"}},{chapter:"halogen",from:"12Dibromo",to:"C2H2",type:"Elimination",cond:{zh:"NaOH 醇溶液, 加热",en:"NaOH(alc), Heat"}},{chapter:"halogen",from:"C2H2",to:"PVC_m",type:"Addition",cond:{zh:"HCl, 催化剂",en:"HCl, Cat."}},{chapter:"alcohol_phenol",from:"C2H4",to:"EtOH",type:"Addition",cond:{zh:"H₂O, 催化剂",en:"H₂O, Cat."}},{chapter:"alcohol_phenol",from:"EtOH",to:"C2H4",type:"Elimination",cond:{zh:"浓H₂SO₄, 170℃",en:"H₂SO₄, 170℃"}},{chapter:"alcohol_phenol",from:"EtOH",to:"CH3CHO",type:"Oxidation",cond:{zh:"O₂, Cu, 加热",en:"O₂, Cu, Heat"}},{chapter:"alcohol_phenol",from:"Phenol",to:"TribromoPh",type:"Substitution",cond:{zh:"浓溴水",en:"Conc. Br₂"}},{chapter:"alcohol_phenol",from:"Phenol",to:"NaPhenolate",type:"Acid-Base",cond:{zh:"NaOH 或 Na",en:"NaOH/Na"}},{chapter:"alcohol_phenol",from:"NaPhenolate",to:"Phenol",type:"Acid-Base",cond:{zh:"CO₂ + H₂O",en:"CO₂ + H₂O"}},{chapter:"alcohol_phenol",from:"BzBr",to:"NaPhenolate",type:"Substitution",cond:{zh:"NaOH, 高温高压",en:"NaOH, High P"}},{chapter:"aldehyde",from:"EtOH",to:"CH3CHO",type:"Oxidation",cond:{zh:"O₂, Cu, 加热",en:"O₂, Cu"}},{chapter:"aldehyde",from:"CH3CHO",to:"EtOH",type:"Reduction",cond:{zh:"H₂, Ni, 加热",en:"H₂, Ni"}},{chapter:"aldehyde",from:"CH3CHO",to:"AcOH",type:"Oxidation",cond:{zh:"酸性 KMnO₄",en:"Acidic KMnO₄"}},{chapter:"aldehyde",from:"CH3CHO",to:"AcOH",type:"Oxidation",cond:{zh:"银氨溶液 (银镜)",en:"Tollens'"}},{chapter:"aldehyde",from:"Glycol",to:"Glyoxal",type:"Oxidation",cond:{zh:"O₂, Cu, 加热",en:"O₂, Cu"}},{chapter:"aldehyde",from:"Glyoxal",to:"OxalicAcid",type:"Oxidation",cond:{zh:"O₂, 催化剂",en:"O₂, Cat."}},{chapter:"aldehyde",from:"Acetone",to:"Isopropanol",type:"Reduction",cond:{zh:"H₂, Ni",en:"H₂, Ni"}},{chapter:"acid_ester",from:"AcOH",to:"EtOAc",type:"Esterification",cond:{zh:"EtOH, 浓H₂SO₄",en:"EtOH, H₂SO₄"}},{chapter:"acid_ester",from:"EtOAc",to:"AcOH",type:"Hydrolysis",cond:{zh:"稀H₂SO₄, 加热",en:"Dilute H₂SO₄"}},{chapter:"acid_ester",from:"EtOAc",to:"EtOH",type:"Hydrolysis",cond:{zh:"NaOH 溶液, 加热",en:"NaOH(aq)"}},{chapter:"acid_ester",from:"Toluene",to:"BzOH",type:"Oxidation",cond:{zh:"酸性 KMnO₄",en:"Acidic KMnO₄"}},{chapter:"acid_ester",from:"SalicylicAcid",to:"Aspirin",type:"Esterification",cond:{zh:"乙酸酐",en:"Ac₂O"}},{chapter:"acid_ester",from:"Glycol",to:"PET",type:"Polycondensation",cond:{zh:"对苯二甲酸",en:"Terephthalic Acid"}},{chapter:"nitrogen",from:"Bz",to:"NitroBz",type:"Substitution",cond:{zh:"浓HNO₃/H₂SO₄",en:"Conc. HNO₃"}},{chapter:"nitrogen",from:"Toluene",to:"TNT",type:"Substitution",cond:{zh:"浓HNO₃, 加热",en:"Conc. HNO₃"}},{chapter:"nitrogen",from:"NitroBz",to:"Aniline",type:"Reduction",cond:{zh:"Fe / HCl",en:"Fe / HCl"}},{chapter:"nitrogen",from:"Aniline",to:"Acetanilide",type:"Substitution",cond:{zh:"乙酸酐/乙酰氯",en:"Ac₂O/AcCl"}},{chapter:"nitrogen",from:"Aniline",to:"TribromoAniline",type:"Substitution",cond:{zh:"浓溴水",en:"Conc. Br₂"}},{chapter:"polymer",from:"C2H4",to:"PE",type:"Polymerisation",cond:{zh:"催化剂, 高温高压",en:"Cat., High P"}},{chapter:"polymer",from:"Styrene",to:"PS",type:"Polymerisation",cond:{zh:"催化剂",en:"Catalyst"}},{chapter:"polymer",from:"PVC_m",to:"PVC",type:"Polymerisation",cond:{zh:"引发剂",en:"Initiator"}},{chapter:"polymer",from:"MeMethacrylate",to:"PMMA",type:"Polymerisation",cond:{zh:"引发剂",en:"Initiator"}},{chapter:"polymer",from:"Phenol",to:"PhenolicResin",type:"Polycondensation",cond:{zh:"HCHO, 催化剂",en:"HCHO, Cat."}},{chapter:"polymer",from:"13Butadiene",to:"Rubber",type:"Polymerisation",cond:{zh:"Na (催化)",en:"Na"}}];
+
+const i18n = {
+    zh: {
+        start: "开始游戏 / Start", lang: "🌐 语言: 中文",
+        chapters: { all: "🔥 综合 (All)", hydrocarbon: "CH.1 烃类", halogen: "CH.2 卤代烃", alcohol_phenol: "CH.3 醇酚", aldehyde: "CH.4 醛酮", acid_ester: "CH.5 酸酯", nitrogen: "CH.6 含氮", polymer: "CH.7 高分子" },
+        over: "Game Over", replay: "再玩一次 (Replay)", report: "📊 生成学习报告", exit: "退出 (Exit)",
+        loginTitle: "考生信息录入", confirm: "确认 (Confirm)", cancel: "取消 (Cancel)",
+        repTitle: "🧪 学习分析报告", acc: "正确率 Accuracy", total: "总答题 Total", mistakes: "📝 错题记录", copy: "📋 复制报告 (Copy)", close: "关闭 (Close)"
+    },
+    en: {
+        start: "Start Game", lang: "🌐 Lang: English",
+        chapters: { all: "🔥 All Chapters", hydrocarbon: "CH.1 Hydrocarbons", halogen: "CH.2 Halogens", alcohol_phenol: "CH.3 Alcohols/Phenols", aldehyde: "CH.4 Aldehydes/Ketones", acid_ester: "CH.5 Acids/Esters", nitrogen: "CH.6 Nitrogen", polymer: "CH.7 Polymers" },
+        over: "Game Over", replay: "Play Again", report: "📊 View Report", exit: "Exit",
+        loginTitle: "Student Info", confirm: "Confirm", cancel: "Cancel",
+        repTitle: "🧪 Learning Report", acc: "Accuracy", total: "Questions", mistakes: "📝 Mistakes", copy: "📋 Copy", close: "Close"
+    }
+};
+
+/* ================= ENGINE ================= */
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+let W, H, CELL, COLS, ROWS, OFF_X, OFF_Y, dpr = window.devicePixelRatio || 1;
+let snake=[], dir={x:1,y:0}, pendingDir=null;
+let boardItems=[], floatTexts=[];
+let score=0, combo=0, currentRxn=null, mode='product', lang='zh';
+let isPaused=false, gameOver=false, gameInterval=null, speed=200;
+let playerInfo = null;
+let gameStats = { total:0, correct:0, mistakes:[] };
+
+const sfx = { bgm: document.getElementById('bgm'), eat: document.getElementById('sfxEat'), die: document.getElementById('sfxDie'), click: document.getElementById('sfxClick') };
+function playSound(n) { try{ if(n==='bgm') sfx.bgm.play().catch(()=>{}); else { sfx[n].currentTime=0; sfx[n].play().catch(()=>{}); } }catch(e){} }
+function getComp(id){ if(!compoundsCore[id]) return {name:id, formula:id}; const c=compoundsCore[id]; const loc=lang==='zh'?c.zh:c.en; return {name:loc.name, formula:c.formula}; }
+function drawRoundRect(ctx, x, y, w, h, r) { if (w < 2 * r) r = w / 2; if (h < 2 * r) r = h / 2; ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+
+function updateText() {
+    const t = i18n[lang];
+    document.getElementById('langBtn').textContent = t.lang;
+    document.getElementById('uiStart').textContent = t.start;
+    document.getElementById('uiOver').textContent = t.over;
+    document.getElementById('uiReplay').textContent = t.replay;
+    document.getElementById('uiReport').textContent = t.report;
+    document.getElementById('uiExit').textContent = t.exit;
+    document.getElementById('uiLoginTitle').textContent = t.loginTitle;
+    document.getElementById('uiConfirm').textContent = t.confirm;
+    document.getElementById('uiCancel').textContent = t.cancel;
+    document.getElementById('uiRepTitle').textContent = t.repTitle;
+    document.getElementById('uiAcc').textContent = t.acc;
+    document.getElementById('uiTotal').textContent = t.total;
+    document.getElementById('uiMistakes').textContent = t.mistakes;
+    document.getElementById('uiCopy').textContent = t.copy;
+    document.getElementById('uiClose').textContent = t.close;
+    
+    const sel = document.getElementById('chapterSelect');
+    const cur = sel.value;
+    sel.innerHTML = "";
+    for(let k in t.chapters){
+        const op = document.createElement('option');
+        op.value = k; op.textContent = t.chapters[k];
+        sel.appendChild(op);
+    }
+    sel.value = cur || 'all';
+}
+
+function toggleLang() { lang = lang==='zh'?'en':'zh'; playSound('click'); updateText(); updateEqUI(); }
+
+function resize(){
+  W=window.innerWidth; H=window.innerHeight;
+  canvas.style.width=W+"px"; canvas.style.height=H+"px";
+  canvas.width=W*dpr; canvas.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+  /* [优化] 进一步压缩底部空间 (Top:110, Bot:130) */
+  const topM = 110; const botM = 130; const availH = H - topM - botM;
+  CELL = Math.floor(Math.min((W-20)/12, availH/15)); if(CELL>40) CELL=40; if(CELL<22) CELL=22;
+  COLS = Math.floor((W-20)/CELL); ROWS = Math.floor(availH/CELL);
+  OFF_X = Math.floor((W - COLS*CELL)/2); OFF_Y = topM + Math.floor((availH - ROWS*CELL)/2);
+}
+window.addEventListener('resize', resize);
+
+function initGame(){
+  resize(); snake=[]; 
+  const sy=Math.floor(ROWS/2);
+  for(let i=0;i<4;i++) snake.push({x:4-i, y:sy});
+  dir={x:1,y:0}; pendingDir=null; score=0; combo=0;
+  boardItems=[]; floatTexts=[]; gameOver=false; isPaused=false;
+  gameStats = { total:0, correct:0, mistakes:[] };
+  
+  closeModal('mainModal'); closeModal('gameOverModal');
+  playSound('bgm'); nextQuestion();
+  if(gameInterval) clearInterval(gameInterval);
+  gameInterval=setInterval(gameLoop, speed);
+  updateUI();
+}
+
+function gameLoop(){
+  if(gameOver||isPaused) return;
+  if(pendingDir && !(pendingDir.x===-dir.x && pendingDir.y===-dir.y)) dir=pendingDir; pendingDir=null;
+  const head={x:snake[0].x+dir.x, y:snake[0].y+dir.y};
+  if(head.x>=COLS) head.x=0; else if(head.x<0) head.x=COLS-1;
+  if(head.y>=ROWS) head.y=0; else if(head.y<0) head.y=ROWS-1;
+  if(snake.some(s=>s.x===head.x && s.y===head.y)) { endGame("Self Collision"); return; }
+  snake.unshift(head);
+  const idx = boardItems.findIndex(i=>i.x===head.x && i.y===head.y);
+  if(idx!==-1){
+    const item = boardItems[idx];
+    gameStats.total++;
+    if(item.isCorrect){
+      playSound('eat'); combo++; score+=(10+(combo-1)*2); addFloat(head.x, head.y, `+${10+(combo-1)*2}`, '#4ade80');
+      gameStats.correct++;
+      boardItems=[]; nextQuestion();
+    } else {
+      playSound('die'); combo=0; score=Math.max(0,score-5); addFloat(head.x, head.y, "WRONG", '#ef4444');
+      snake.pop(); snake.pop(); snake.pop(); 
+      gameStats.mistakes.push({ q: formatRxn(currentRxn), w: item.kind==='cond'?item.val:getComp(item.val).formula });
+      boardItems=[]; nextQuestion();
+    }
+  } else { snake.pop(); }
+  if(snake.length===0) endGame("Died");
+  draw(); updateUI();
+}
+
+/* [核心优化] 间距检测算法 (防重叠) */
+function isPositionSafe(x, y) {
+    if(snake.some(s=>Math.abs(s.x-x)<2 && Math.abs(s.y-y)<2)) return false;
+    for (let item of boardItems) {
+        if (Math.abs(item.x - x) < 4 && Math.abs(item.y - y) < 4) return false;
+    }
+    return true;
+}
+
+function nextQuestion(){
+  const ch = document.getElementById('chapterSelect').value;
+  let pool = (ch==='all') ? reactionsCore : reactionsCore.filter(r=>r.chapter===ch);
+  if(pool.length===0) pool=reactionsCore;
+  currentRxn = pool[Math.floor(Math.random()*pool.length)];
+  mode = Math.random()<0.5?'product':'cond';
+  const correct = mode==='product'?currentRxn.to:currentRxn.cond[lang];
+  let opts = [correct];
+  let distPool = [];
+  if(mode==='product') distPool = Object.keys(compoundsCore).filter(k=>k!==currentRxn.from && k!==currentRxn.to);
+  else distPool = [...new Set(reactionsCore.map(r=>r.cond[lang]))].filter(c=>c!==correct);
+  while(opts.length<4){ const d = distPool[Math.floor(Math.random()*distPool.length)]; if(!opts.includes(d)) opts.push(d); }
+  boardItems=[];
+  opts.forEach(val=>{
+    let p, ok=false, attempts=0;
+    while(!ok && attempts<100){
+      attempts++;
+      p={x: Math.floor(Math.random()*(COLS-2))+1, y: Math.floor(Math.random()*(ROWS-2))+1};
+      if(isPositionSafe(p.x, p.y)) ok=true;
+    }
+    if(ok) boardItems.push({x:p.x, y:p.y, val, kind:mode==='product'?'prod':'cond', isCorrect:val===correct});
+  });
+  updateEqUI();
+}
+
+function formatRxn(r){ return `${getComp(r.from).formula} + ${r.cond[lang]}`; }
+function updateUI(){ document.getElementById('scoreVal').textContent = score; document.getElementById('comboVal').textContent = combo; document.getElementById('chapterDisplay').textContent = document.getElementById('chapterSelect').options[document.getElementById('chapterSelect').selectedIndex]?.text.split(' ')[1] || 'ALL'; }
+
+function updateEqUI(){
+    if(!currentRxn) return;
+    const rf = getComp(currentRxn.from);
+    document.getElementById('eqLeft').innerHTML = `<span class="chem-formula">${rf.formula}</span><span class="chem-name">${rf.name}</span>`;
+    if(mode==='product'){
+        document.getElementById('eqCond').textContent = currentRxn.cond[lang];
+        document.getElementById('eqRight').innerHTML = `<span class="eq-unknown">???</span>`;
+    } else {
+        document.getElementById('eqCond').textContent = "???";
+        const rt = getComp(currentRxn.to);
+        document.getElementById('eqRight').innerHTML = `<span class="chem-formula">${rt.formula}</span><span class="chem-name">${rt.name}</span>`;
+    }
+}
+
+function draw(){
+  const th = { Substitution:'#1e3a8a', Addition:'#064e3b', Oxidation:'#7f1d1d' }[currentRxn?.type] || '#1e293b';
+  const g = ctx.createLinearGradient(0,0,W,H); g.addColorStop(0,"#020617"); g.addColorStop(1,th); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle="rgba(255,255,255,0.05)"; ctx.lineWidth=1; ctx.beginPath();
+  for(let x=0;x<=COLS;x++){ ctx.moveTo(OFF_X+x*CELL,OFF_Y); ctx.lineTo(OFF_X+x*CELL,OFF_Y+ROWS*CELL); }
+  for(let y=0;y<=ROWS;y++){ ctx.moveTo(OFF_X,OFF_Y+y*CELL); ctx.lineTo(OFF_X+COLS*CELL,OFF_Y+y*CELL); } ctx.stroke();
+  ctx.strokeStyle="rgba(255,255,255,0.2)"; ctx.lineWidth=2; ctx.strokeRect(OFF_X,OFF_Y,COLS*CELL,ROWS*CELL);
+  
+  boardItems.forEach(i=>{
+    const cx=OFF_X+i.x*CELL, cy=OFF_Y+i.y*CELL;
+    ctx.shadowBlur=15; ctx.shadowColor="#facc15"; ctx.fillStyle="rgba(250,204,21,0.2)"; ctx.strokeStyle="#facc15"; ctx.lineWidth=2; 
+    drawRoundRect(ctx, cx+2, cy+2, CELL-4, CELL-4, 6); ctx.fill(); ctx.stroke(); ctx.shadowBlur=0;
+    
+    /* [核心] 气泡绘制：双行 */
+    let line1 = "", line2 = "";
+    if(i.kind==='cond') line1 = i.val;
+    else { const c = getComp(i.val); line1 = c.formula; line2 = c.name; }
+
+    ctx.font = "bold 13px sans-serif"; const w1 = ctx.measureText(line1).width;
+    ctx.font = "10px sans-serif"; const w2 = ctx.measureText(line2).width;
+    const w = Math.max(w1, w2) + 12;
+    const hBox = line2 ? 30 : 20;
+
+    let lx = cx + CELL/2, ly = cy - 12;
+    if(i.y < 2) ly = cy + CELL + 22; if(lx - w/2 < OFF_X) lx = OFF_X + w/2 + 2; if(lx + w/2 > OFF_X + COLS*CELL) lx = OFF_X + COLS*CELL - w/2 - 2;
+    
+    ctx.fillStyle="rgba(15,23,42,0.95)"; drawRoundRect(ctx, lx-w/2, ly-hBox/2, w, hBox, 6); ctx.fill();
+    ctx.textAlign="center"; ctx.textBaseline="middle";
+    if (line2) {
+        ctx.fillStyle="#fff"; ctx.font="bold 12px sans-serif"; ctx.fillText(line1, lx, ly - 7);
+        ctx.fillStyle="#94a3b8"; ctx.font="10px sans-serif"; ctx.fillText(line2, lx, ly + 7);
+    } else {
+        ctx.fillStyle="#fff"; ctx.font="bold 12px sans-serif"; ctx.fillText(line1, lx, ly);
+    }
+  });
+
+  snake.forEach((p,i)=>{
+    const cx=OFF_X+p.x*CELL+CELL/2, cy=OFF_Y+p.y*CELL+CELL/2, r=CELL/2-2;
+    ctx.fillStyle = i===0?"#60a5fa":"#3b82f6"; if(i===0){ ctx.shadowBlur=15; ctx.shadowColor="#60a5fa"; } else ctx.shadowBlur=0; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+    if(i===0){ ctx.fillStyle="white"; ctx.beginPath(); ctx.arc(cx+dir.y*4-dir.x*4, cy+dir.x*4-dir.y*4, 3, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(cx+dir.y*4+dir.x*4, cy+dir.x*4+dir.y*4, 3, 0, Math.PI*2); ctx.fill(); }
+  });
+  floatTexts.forEach(f=>{ ctx.fillStyle=f.c; ctx.font="bold 16px sans-serif"; ctx.fillText(f.t, OFF_X+f.x*CELL+CELL/2, OFF_Y+f.y*CELL); f.y-=0.05; f.life--; }); floatTexts=floatTexts.filter(f=>f.life>0);
+}
+function addFloat(x,y,t,c){ floatTexts.push({x,y,t,c,life:20}); }
+function endGame(reason){
+    gameOver=true; clearInterval(gameInterval); sfx.bgm.pause();
+    document.getElementById('deathReason').textContent = reason;
+    document.getElementById('finalScore').textContent = score;
+    openModal('gameOverModal');
+}
+
+const openModal = (id) => document.getElementById(id).classList.add('active');
+const closeModal = (id) => document.getElementById(id).classList.remove('active');
+
+function checkLogin() { if(playerInfo) generateReport(); else { openModal('loginModal'); } }
+function submitLogin(){
+    const n = document.getElementById('nameInput').value; const id = document.getElementById('idInput').value;
+    if(n){ playerInfo={name:n, id:id}; closeModal('loginModal'); generateReport(); }
+}
+function generateReport(){
+    document.getElementById('reportHeader').innerHTML = `<span>👤 ${playerInfo.name}</span><span>🆔 ${playerInfo.id || '-'}</span>`;
+    document.getElementById('repAcc').textContent = gameStats.total>0 ? Math.round((gameStats.correct/gameStats.total)*100)+"%" : "0%";
+    document.getElementById('repTotal').textContent = gameStats.total;
+    const list = document.getElementById('repWrongList'); list.innerHTML="";
+    gameStats.mistakes.forEach(m=>{ list.innerHTML+=`<div class="wrong-item"><div style="color:#e2e8f0">${m.q}</div><div style="color:#ef4444">❌ ${m.w}</div></div>`; });
+    closeModal('gameOverModal'); openModal('reportModal');
+}
+function copyReport(){
+    const txt = `CJ ChemSnake Report\nUser: ${playerInfo.name}\nScore: ${score}\nMistakes:\n${gameStats.mistakes.map(m=>m.q+" -> "+m.w).join('\n')}`;
+    navigator.clipboard.writeText(txt).then(()=>alert("Copied!"));
+}
+
+/* [NEW] Import logic */
+document.getElementById('fileInput').onchange = function(e) {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            if(data.compounds && data.reactions) {
+                compoundsCore = data.compounds;
+                reactionsCore = data.reactions;
+                alert("Import Successful!");
+                updateText(); 
+            }
+        } catch(err) { alert("Invalid File"); }
+    };
+    reader.readAsText(file);
+};
+
+const bindTouch = (id, fn, type='mousedown') => { 
+    const el = document.getElementById(id); 
+    if(!el) return;
+    // 统一触摸和鼠标
+    const startEvt = (type === 'mousedown') ? 'mousedown' : 'touchstart';
+    const endEvt = (type === 'mousedown') ? 'mouseup' : 'touchend';
+    
+    if(type === 'click') {
+        el.addEventListener('click', (e) => { e.preventDefault(); fn(); });
+        el.addEventListener('touchstart', (e) => { e.preventDefault(); fn(); }); // Mobile tap
+    } else if (type === 'hold') {
+        // For boost button
+        el.addEventListener('touchstart', (e) => { e.preventDefault(); fn('start'); });
+        el.addEventListener('touchend', (e) => { e.preventDefault(); fn('end'); });
+        el.addEventListener('mousedown', (e) => { e.preventDefault(); fn('start'); });
+        el.addEventListener('mouseup', (e) => { e.preventDefault(); fn('end'); });
+    } else {
+        // Directional tap
+        el.addEventListener('touchstart', (e)=>{e.preventDefault();fn();if(navigator.vibrate)navigator.vibrate(10);},{passive:false});
+        el.addEventListener('mousedown', (e)=>{e.preventDefault();fn();});
+    }
+};
+
+bindTouch('btn-up', ()=> {if(dir.y!==1) pendingDir={x:0,y:-1}}); 
+bindTouch('btn-down', ()=> {if(dir.y!==-1) pendingDir={x:0,y:1}});
+bindTouch('btn-left', ()=> {if(dir.x!==1) pendingDir={x:-1,y:0}}); 
+bindTouch('btn-right', ()=> {if(dir.x!==-1) pendingDir={x:1,y:0}});
+
+// Boost Logic
+const setSpeed = (s) => {
+    if(speed === s) return;
+    speed = s;
+    if(gameInterval && !isPaused && !gameOver) {
+        clearInterval(gameInterval);
+        gameInterval = setInterval(gameLoop, speed);
+    }
+};
+bindTouch('btn-boost', (state) => {
+    if(state === 'start') setSpeed(80); // Fast
+    else setSpeed(200); // Normal
+}, 'hold');
+
+bindTouch('btn-restart', ()=> initGame(true), 'click');
+bindTouch('btn-pause', ()=> { isPaused=!isPaused; }, 'click'); 
+bindTouch('btn-setting', ()=> { endGame("Manual Exit"); }, 'click');
+
+/* Start */
+window.onload = function() {
+    updateText(); 
+    resize();
+    ctx.fillStyle="#0f172a"; ctx.fillRect(0,0,W,H); ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.fillText("CJ ChemSnake V75", W/2, H/2);
+};
+
+document.addEventListener('keydown', e=>{
+    if(e.key==='ArrowUp' && dir.y!==1) pendingDir={x:0,y:-1};
+    if(e.key==='ArrowDown' && dir.y!==-1) pendingDir={x:0,y:1};
+    if(e.key==='ArrowLeft' && dir.x!==1) pendingDir={x:-1,y:0};
+    if(e.key==='ArrowRight' && dir.x!==-1) pendingDir={x:1,y:0};
+    if(e.key===' ') initGame();
+});
+
+</script>
+</body>
+</html>
+</textarea>
+
+    <textarea id="code-pc">
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>CJ ChemSnake (PC Turbo V76)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,maximum-scale=1">
+<style>
+  /* =================================================================
+     [Style] V76 布局修复版 (加速按钮下移)
+     ================================================================= */
+  html,body{ height:100%; margin:0; overflow:hidden; font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif; background:#020617; color:#e5e7eb; user-select:none; -webkit-user-select:none; touch-action:none; }
+  canvas { display:block; margin:0; width:100%; height:100%; position:absolute; top:0; left:0; z-index:0; pointer-events:none; }
+  
+  /* UI Container */
+  #infoPanel { position:fixed; top:8px; left:50%; transform:translateX(-50%); padding:12px 20px; background:rgba(15,23,42,0.96); border-radius:24px; border:1px solid #1e293b; backdrop-filter:blur(16px); width:calc(100% - 30px); max-width:1200px; min-width:320px; z-index:100; box-shadow:0 25px 80px rgba(0,0,0,0.8); display:flex; flex-direction:column; gap:10px; transition:all 0.3s ease; }
+  
+  @media (max-width: 768px) {
+      #infoPanel { top:5px; padding:10px; gap:8px; }
+      .header-row { height:auto !important; flex-wrap:wrap; justify-content:center; gap:8px; margin-bottom:5px; }
+      .title-area h2 { display:none; } 
+      #scoreContainer { position:relative !important; left:auto !important; top:auto !important; transform:none !important; width:100%; justify-content:center; margin-top:5px; order:3; }
+      .info-right { display:none !important; }
+      .bottom-panels { display:none !important; }
+      #keyHintBar { display:none !important; }
+      button { padding:8px 16px !important; }
+      .score-1p, .score-2p { padding:4px 20px; width:100%; justify-content:space-around; }
+  }
+
+  .header-row { display:flex; align-items:center; justify-content:space-between; position:relative; height:64px; margin-bottom:4px; }
+  .title-area { display:flex; align-items:center; gap:12px; z-index:2; }
+  .game-icon { width:36px; height:36px; filter:drop-shadow(0 0 6px rgba(59,130,246,0.8)); animation:pulse 3s infinite ease-in-out; }
+  h2 { margin:0; font-size:26px; letter-spacing:1px; color:#fff; white-space:nowrap; font-weight:800; text-shadow:0 0 10px rgba(59,130,246,0.5); }
+  
+  button, select, #timeDisplay, .modal-input, .vk-key, #modeSwitchBtn { border-radius:10px !important; }
+  #modeSwitchBtn { font-size:12px; padding:6px 14px; cursor:pointer; font-weight:bold; border:1px solid #6366f1; background:linear-gradient(90deg, rgba(99,102,241,0.2), rgba(79,70,229,0.2)); color:#a5b4fc; transition:all 0.2s; display:flex; align-items:center; gap:5px; }
+  #modeSwitchBtn:hover { background:rgba(99,102,241,0.5); color:#fff; transform:scale(1.05); }
+
+  #scoreContainer { position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); z-index:1; pointer-events:none; white-space:nowrap; display:flex; }
+  .score-1p, .score-2p { display:flex; align-items:center; background:linear-gradient(180deg, rgba(30,41,59,0.7), rgba(15,23,42,0.7)); padding:4px 45px; border-radius:16px; border:1px solid #334155; box-shadow:inset 0 0 25px rgba(0,0,0,0.5); }
+  .score-1p { gap:35px; } .score-2p { gap:45px; }
+  .p-unit { display:flex; flex-direction:column; align-items:center; line-height:1; min-width:80px; }
+  .p1-c { color:#60a5fa; text-shadow:0 0 15px rgba(59,130,246,0.8); }
+  .p2-c { color:#f87171; text-shadow:0 0 15px rgba(248,113,113,0.8); }
+  .p-val { font-size:40px; font-weight:900; font-variant-numeric:tabular-nums; margin:2px 0; font-family:'Segoe UI',sans-serif; letter-spacing:1px; }
+  .p-lbl { font-size:11px; opacity:0.8; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+  .ctrl-badge { font-size:10px; color:#94a3b8; background:rgba(255,255,255,0.08); padding:2px 6px; border-radius:6px; margin-top:4px; white-space:nowrap; border:1px solid rgba(255,255,255,0.1); }
+  
+  button { font-family:inherit; cursor:pointer; white-space:nowrap; border:none; outline:none; transition:all 0.1s; position:relative; z-index:10; }
+  button:active { transform:scale(0.96); }
+  .btn-action { padding:6px 22px; font-size:14px; font-weight:bold; border:1px solid #38bdf8; background:linear-gradient(90deg,rgba(37,99,235,.9),rgba(56,189,248,.9)); color:#fff; box-shadow:0 0 15px rgba(56,189,248,0.4); }
+  .btn-sub { padding:5px 14px; font-size:12px; border:1px solid #4b5563; background:rgba(30,41,59,0.8); color:#e5e7eb; }
+  .btn-zh { border-color:#22c55e; color:#bbf7d0; }
+  .btn-en { border-color:#6366f1; color:#a5b4fc; }
+  .btn-clear { border-color:#ef4444; background:rgba(127,29,29,0.3); color:#fca5a5; }
+  .btn-report { border-color:#f59e0b; background:rgba(245,158,11,0.2); color:#fcd34d; }
+  .btn-report:hover { background:rgba(245,158,11,0.4); }
+  .btn-copy { border-color:#10b981; background:rgba(16,185,129,0.2); color:#6ee7b7; }
+  .btn-copy:hover { background:rgba(16,185,129,0.4); }
+  .btn-import { border-color:#8b5cf6; background:rgba(139,92,246,0.2); color:#c4b5fd; }
+  .btn-import:hover { background:rgba(139,92,246,0.4); }
+  
+  /* 加速按钮样式优化 */
+  .btn-turbo { border-color:#f59e0b; background:linear-gradient(90deg, rgba(217,119,6,0.2), rgba(245,158,11,0.2)); color:#fbbf24; transition:all 0.1s; }
+  .btn-turbo:active, .btn-turbo.active { background:linear-gradient(90deg, #d97706, #f59e0b); color:#fff; box-shadow:0 0 15px rgba(245,158,11,0.5); transform:scale(0.95); border-color:#fbbf24; }
+
+  .info-row { display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
+  .info-left, .info-right { display:flex; align-items:center; gap:12px; z-index:2; flex-wrap:wrap; justify-content:center; }
+  
+  select { font-size:12px; padding:5px 10px; border:1px solid #6366f1; background:#0f172a; color:#e5e7eb; outline:none; cursor:pointer; position:relative; z-index:10; min-width:120px; }
+  input[type=range] { width:100px; vertical-align:middle; cursor:pointer; accent-color:#3b82f6; position:relative; z-index:10; }
+  label { cursor:pointer; display:flex; align-items:center; gap:4px; font-size:12px; user-select:none; position:relative; z-index:10; }
+  #timeDisplay { font-variant-numeric:tabular-nums; min-width:60px; text-align:center; font-size:13px; padding:5px 10px; background:#0f172a; border:1px solid #334155; opacity:0.5; font-weight:bold; transition:opacity 0.2s; }
+  #timeDisplay.active { opacity:1; color:#facc15; border-color:#facc15; text-shadow:0 0 8px rgba(250,204,21,0.4); }
+  
+  .eq-row { position:relative; display:flex; align-items:center; justify-content:center; gap:30px; padding:18px 0; background:rgba(15,23,42,0.6); border-radius:16px; border:1px solid rgba(255,255,255,0.08); min-height:60px; }
+  .eq-part { flex:0 0 35%; max-width:35%; font-size:22px; font-weight:800; text-shadow:0 0 8px rgba(0,0,0,0.8); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:baseline; justify-content:center; gap:10px; }
+  .eq-left { color:#60a5fa; justify-content:flex-end; }
+  .eq-right { color:#4ade80; justify-content:flex-start; }
+  .eq-chem { font-size:28px; font-weight:800; letter-spacing:0.5px; font-family:'Segoe UI',sans-serif; }
+  .eq-name { font-size:16px; opacity:0.8; font-weight:600; }
+  .eq-mid { flex:0 0 240px; position:relative; height:32px; }
+  .eq-cond { position:absolute; bottom:65%; left:50%; transform:translateX(-50%); font-size:16px; font-weight:600; color:#facc15; width:100%; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 0 5px rgba(0,0,0,0.8); }
+  .eq-arrow { position:absolute; left:0; top:50%; width:100%; height:3px; background:#e5e7eb; border-radius:2px; box-shadow:0 0 5px rgba(255,255,255,0.2); }
+  .eq-arrow::after { content:""; position:absolute; right:-8px; top:-5px; border-left:10px solid #e5e7eb; border-top:7px solid transparent; border-bottom:7px solid transparent; }
+  .eq-unknown { color:#94a3b8; font-style:normal; text-shadow:none; font-family:monospace; font-size:32px; }
+  
+  .bottom-panels { display:flex; gap:20px; width:100%; }
+  .panel-box { flex:1; background:rgba(30,41,59,0.6); border:1px solid #374151; border-radius:16px; padding:15px; height:75px; overflow-y:auto; font-size:12px; color:#9ca3af; }
+  .panel-head { display:flex; justify-content:space-between; margin-bottom:8px; font-weight:700; color:#cbd5e1; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:4px; }
+  .log-item { border-bottom:1px dashed #475569; padding:4px 0; line-height:1.4; display:flex; justify-content:space-between; }
+  .p1-tag { color:#60a5fa; font-weight:bold; margin-right:5px; }
+  .p2-tag { color:#f87171; font-weight:bold; margin-right:5px; }
+  
+  .modal-mask { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(12px); display:flex; align-items:center; justify-content:center; z-index:200; }
+  .modal-box { background:linear-gradient(145deg, #0f172a, #1e293b); border:1px solid #334155; border-radius:24px; padding:40px; width:700px; max-width:95%; text-align:center; box-shadow:0 50px 100px rgba(0,0,0,1); pointer-events:auto; position:relative; overflow:hidden; }
+  .modal-box::before { content:""; position:absolute; top:0; left:0; width:100%; height:6px; background:linear-gradient(90deg, #3b82f6, #ef4444, #facc15); }
+  .modal-icon-area { font-size:80px; margin-bottom:10px; filter:drop-shadow(0 0 20px rgba(255,255,255,0.2)); animation:popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  @keyframes popIn { from{transform:scale(0);} to{transform:scale(1);} }
+  .modal-h { font-size:36px; color:#f1f5f9; font-weight:900; margin-bottom:15px; text-shadow:0 0 20px rgba(0,0,0,0.5); letter-spacing:1px; }
+  .modal-sub { font-size:20px; color:#94a3b8; margin-bottom:30px; font-weight:500; }
+  .modal-input { background:#020617; border:2px solid #3b82f6; color:#facc15; font-size:28px; padding:15px; margin-bottom:15px; width:80%; text-align:center; font-family:monospace; letter-spacing:2px; transition:all 0.2s; display:block; margin-left:auto; margin-right:auto; }
+  .modal-input:focus { border-color:#facc15; box-shadow:0 0 20px rgba(250,204,21,0.3); outline:none; }
+  .input-label { color:#94a3b8; font-size:12px; margin-bottom:5px; text-align:left; width:80%; margin:0 auto 5px auto; display:block; font-weight:bold; }
+  .btn-group { display:flex; gap:15px; justify-content:center; flex-wrap:wrap; }
+  
+  .report-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; text-align:left; margin-bottom:25px; }
+  .report-card { background:rgba(30,41,59,0.5); border:1px solid #334155; border-radius:16px; padding:15px; }
+  .report-label { color:#94a3b8; font-size:12px; font-weight:bold; text-transform:uppercase; margin-bottom:5px; }
+  .report-val { font-size:24px; color:#e2e8f0; font-weight:800; }
+  .report-grade { font-size:48px; color:#facc15; font-weight:900; text-shadow:0 0 20px rgba(250,204,21,0.5); float:right; line-height:1; }
+  .chart-bar { display:flex; align-items:center; margin-bottom:8px; font-size:11px; color:#cbd5e1; }
+  .chart-label { width:80px; text-align:right; margin-right:10px; white-space:nowrap; }
+  .chart-track { flex:1; height:8px; background:#0f172a; border-radius:4px; overflow:hidden; }
+  .chart-fill { height:100%; background:#3b82f6; border-radius:4px; transition:width 0.5s ease; }
+  .chart-val { width:30px; text-align:right; margin-left:5px; font-weight:bold; color:#60a5fa; }
+  .wrong-list { max-height:120px; overflow-y:auto; font-size:12px; color:#94a3b8; background:#020617; padding:10px; border-radius:10px; border:1px dashed #334155; }
+  .wrong-row { display:flex; justify-content:space-between; border-bottom:1px solid #1e293b; padding:4px 0; }
+  .report-header { display:flex; justify-content:space-between; background:rgba(255,255,255,0.05); padding:10px 20px; border-radius:12px; margin-bottom:20px; font-size:14px; color:#f1f5f9; font-weight:bold; border:1px solid #334155; }
+  .diagnosis-box { background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); padding:12px; border-radius:10px; color:#d1fae5; font-size:13px; text-align:left; line-height:1.5; margin-bottom:15px; }
+
+  #virtualKeyboard { display:flex; flex-direction:column; gap:8px; margin-bottom:25px; align-items:center; }
+  .vk-row { display:flex; gap:8px; }
+  .vk-key { width:38px; height:38px; background:#1e293b; border:1px solid #475569; color:#e5e7eb; font-size:15px; font-weight:bold; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.1s; box-shadow:0 4px 0 #0f172a; }
+  .vk-key:active { transform:translateY(4px); box-shadow:0 0 0 #0f172a; }
+  .vk-key:hover { background:#334155; border-color:#60a5fa; }
+  .vk-key.wide { width:70px; } 
+  .ui-focused { outline:3px solid #facc15 !important; outline-offset:4px; background:rgba(250,204,21,0.2) !important; border-color:#facc15 !important; transform:scale(1.05); z-index:210; }
+
+  #keyHintBar { position:fixed; bottom:25px; left:50%; transform:translateX(-50%); font-size:11px; color:#94a3b8; background:rgba(2,6,23,0.96); padding:10px 25px; border-radius:16px; border:1px solid #334155; display:flex; flex-direction:column; gap:8px; pointer-events:none; z-index:98; box-shadow:0 15px 50px rgba(0,0,0,0.9); backdrop-filter:blur(12px); white-space:nowrap; align-items:center; }
+  .kh-row { display:flex; gap:30px; align-items:center; }
+  .kh-group { display:flex; gap:12px; align-items:center; border-right:1px solid #334155; padding-right:25px; }
+  .kh-group:last-child { border-right:none; padding-right:0; }
+  .kh-label { font-weight:800; color:#60a5fa; text-transform:uppercase; letter-spacing:0.5px; font-size:10px; opacity:0.8; margin-right:4px; }
+  .kh-item { display:flex; align-items:center; gap:6px; background:rgba(30,41,59,0.4); padding:3px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.05); }
+  .kh-key { background:#0f172a; padding:1px 6px; border-radius:6px; color:#e2e8f0; font-family:monospace; font-weight:bold; border:1px solid #475569; border-bottom:2px solid #475569; font-size:11px; min-width:14px; text-align:center; }
+  .kh-pad { color:#facc15; font-size:11px; font-weight:700; background:rgba(250,204,21,0.1); padding:1px 5px; border-radius:6px; border:1px solid rgba(250,204,21,0.2); }
+  .kh-desc { color:#cbd5e1; font-weight:600; margin-left:2px; font-size:11px; }
+
+  #footer { position:fixed; bottom:5px; right:15px; font-size:10px; color:#475569; opacity:0.6; z-index:50; pointer-events:none; font-family:sans-serif; text-shadow:0 1px 2px rgba(0,0,0,0.8); }
+  #toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#10b981; color:#fff; padding:8px 20px; border-radius:10px; font-weight:bold; font-size:14px; box-shadow:0 10px 30px rgba(16,185,129,0.4); z-index:300; opacity:0; pointer-events:none; transition:opacity 0.3s; }
+  #toast.show { opacity:1; }
+</style>
+</head>
+<body>
+
+<div id="toast">✅ Report Copied to Clipboard!</div>
+<input type="file" id="fileInput" style="display:none" accept=".json,.txt">
+
+<div id="infoPanel">
+  <div class="header-row">
+    <div class="title-area">
+      <svg class="game-icon" viewBox="0 0 100 100" fill="none" stroke="url(#gradIcon)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+        <defs><linearGradient id="gradIcon" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#3b82f6" /><stop offset="100%" style="stop-color:#ef4444" /></linearGradient></defs>
+        <path d="M50 5 L90 27 V73 L50 95 L10 73 V27 Z" />
+        <path d="M35 35 Q65 35 65 50 Q65 65 35 65" stroke="#facc15" stroke-width="5" />
+        <circle cx="35" cy="35" r="3" fill="#facc15" stroke="none"/>
+      </svg>
+      <h2>CJ ChemSnake</h2>
+      <button id="modeSwitchBtn">👤 1P Mode</button>
+    </div>
+    
+    <div id="scoreContainer"></div>
+
+    <div class="info-right">
+      <button id="importBtn" class="btn-sub btn-import">📂 导入题库</button>
+      <button id="langToggle" class="btn-sub btn-zh">中文题库 (L)</button>
+      <button id="newGameBtn" class="btn-action">新局 (Space)</button>
+    </div>
+  </div>
+  
+  <div class="info-row" style="justify-content:center; font-size:12px;">
+    <div class="info-left">
+      <span data-i18n="chapterLabel">章节(Tab):</span>
+      <select id="chapterSelect"></select>
+      
+      <span style="margin-left:8px; border-left:1px solid #374151; padding-left:8px;" data-i18n="timerLabel">限时(T):</span>
+      <label><input type="checkbox" id="timedToggle"> <span data-i18n="on">开</span></label>
+      <select id="durationSelect">
+        <option value="60">60s</option>
+        <option value="180" selected>180s</option>
+        <option value="300">300s</option>
+      </select>
+      <span id="timeDisplay">--:--</span>
+    </div>
+    
+    <div class="info-right">
+      <button id="turboBtn" class="btn-sub btn-turbo" onmousedown="setTurbo(true)" onmouseup="setTurbo(false)" onmouseleave="setTurbo(false)" ontouchstart="setTurbo(true)" ontouchend="setTurbo(false)" style="margin-right:5px;">⚡ 加速(Shift)</button>
+      
+      <span data-i18n="speedLabel">速度:</span> <input type="range" id="speedRange" min="1" max="10" step="1" value="5">
+      <span style="margin-left:8px; border-left:1px solid #374151; padding-left:8px;" data-i18n="audioLabel">声音:</span>
+      <label title="BGM"><input type="checkbox" id="bgmToggle"> BGM</label>
+      <label title="SFX"><input type="checkbox" id="sfxToggle"> SFX</label>
+      <button id="keyMapBtn" class="btn-sub" style="margin-left:5px;" data-i18n="keyMapBtn">键位</button>
+    </div>
+  </div>
+
+  <div class="eq-row">
+    <div class="eq-part eq-left" id="eqLeft"></div>
+    <div class="eq-mid">
+      <div class="eq-cond" id="eqCond"></div>
+      <div class="eq-arrow"></div>
+    </div>
+    <div class="eq-part eq-right" id="eqRight"></div>
+  </div>
+
+  <div class="bottom-panels">
+    <div class="panel-box">
+      <div class="panel-head">
+        <span data-i18n="rankTitle">🏆 排行榜</span>
+        <button id="clearRank" class="btn-sub btn-clear" style="padding:0 6px;font-size:10px;" data-i18n="clearBtn">清空</button>
+      </div>
+      <div id="rankList"></div>
+    </div>
+    <div class="panel-box">
+      <div class="panel-head">
+        <span data-i18n="wrongTitle">📚 错题本</span>
+        <button id="clearWrong" class="btn-sub btn-clear" style="padding:0 6px;font-size:10px;" data-i18n="clearBtn">清空</button>
+      </div>
+      <div id="wrongLog"></div>
+    </div>
+  </div>
+</div>
+
+<div id="keyHintBar">
+    <div class="kh-row">
+        <div class="kh-group">
+            <div class="kh-label" data-i18n="hintMove">移动</div>
+            <div class="kh-item"><span class="kh-key">WASD</span><span class="kh-pad">L-Stick</span><span class="kh-desc">P1</span></div>
+            <div class="kh-item"><span class="kh-key">↑↓←→</span><span class="kh-pad">R-Stick</span><span class="kh-desc">P2</span></div>
+        </div>
+        <div class="kh-group">
+            <div class="kh-label" data-i18n="hintFlow">流程</div>
+            <div class="kh-item"><span class="kh-key">Space</span><span class="kh-pad">A</span><span class="kh-desc" data-i18n="hintStart">开始</span></div>
+            <div class="kh-item"><span class="kh-key">Esc/P</span><span class="kh-pad">Start</span><span class="kh-desc" data-i18n="hintPause">暂停</span></div>
+            <div class="kh-item"><span class="kh-key">Shift</span><span class="kh-pad">RT</span><span class="kh-desc">加速</span></div>
+        </div>
+    </div>
+    <div class="kh-row" style="opacity:0.85; transform:scale(0.95);">
+        <div class="kh-group" style="border:none;">
+            <div class="kh-item"><span class="kh-key">Q</span><span class="kh-pad">Select</span><span class="kh-desc" data-i18n="hintMode">模式</span></div>
+            <div class="kh-item"><span class="kh-key">M/N</span><span class="kh-pad">X/Y</span><span class="kh-desc" data-i18n="hintSound">声音</span></div>
+            <div class="kh-item"><span class="kh-key">T</span><span class="kh-pad">LT</span><span class="kh-desc" data-i18n="hintTime">限时</span></div>
+            <div class="kh-item"><span class="kh-key">[ ]</span><span class="kh-pad">LB/RB</span><span class="kh-desc" data-i18n="hintSpeed">速度</span></div>
+        </div>
+    </div>
+</div>
+
+<div id="footer">© 2025 CJ Studio | CJ 工作室出品</div>
+
+<audio id="bgm" src="bgm.mp3" loop preload="auto"></audio>
+<audio id="eat" src="eat.mp3" preload="auto"></audio>
+<audio id="die" src="die.mp3" preload="auto"></audio>
+<audio id="click" src="click.mp3" preload="auto"></audio>
+<audio id="win" src="win.mp3" preload="auto"></audio>
+
+<canvas id="game"></canvas>
+
+<script>
+/* =================================================================
+   AUDIO SYSTEM
+   ================================================================= */
+const sounds = {
+    el: {
+        bgm: document.getElementById('bgm'),
+        eat: document.getElementById('eat'),
+        die: document.getElementById('die'),
+        click: document.getElementById('click'),
+        win: document.getElementById('win')
+    },
+    play: function(name) {
+        if (!isSfxOn && name !== 'bgm') return;
+        if (name === 'bgm' && !isBgmOn) return;
+        const audio = this.el[name];
+        if(audio) {
+            audio.currentTime = 0;
+            audio.play().catch(()=>{});
+        }
+    },
+    toggleBGM: function(play) {
+        if(play && isBgmOn) {
+            this.el.bgm.volume = 0.5;
+            this.el.bgm.play().catch(()=>{});
+        } else {
+            this.el.bgm.pause();
+        }
+    }
+};
+
+/* =================================================================
+   DATA
+   ================================================================= */
+const i18n = {
+    zh: {
+        score: "分数", combo: "连击",
+        mode1p: "👤 1P Mode", mode2p: "👥 2P Mode",
+        langBtn: "🌐 语言/Lang (L)", newGame: "新局 (Space)",
+        chapterLabel: "章节(Tab):", timerLabel: "限时(T):", on: "开",
+        speedLabel: "速度:", audioLabel: "声音:", keyMapBtn: "键位",
+        rankTitle: "🏆 排行榜", wrongTitle: "📚 错题本", clearBtn: "清空",
+        hintMove: "移动", hintFlow: "流程", hintStart: "开始", hintPause: "暂停",
+        hintMode: "模式", hintSound: "声音", hintTime: "限时", hintSpeed: "速度",
+        gameOver: "游戏结束", draw: "平局", wins: " 获胜", died: " 牺牲",
+        reasonDisappear: "身体消失", reasonTime: "时间到", reasonCrash: "撞毁", reasonSelf: "撞到自己",
+        playAgain: "再玩一次", saveScore: "保存成绩", close: "关闭", report: "📊 生成学习报告", copyBtn: "📋 复制报告", copySuccess: "✅ 报告已复制！",
+        saveTitle: "保存成绩", reportTitle: "🧪 学习分析报告",
+        loginTitle: "🎓 考生信息录入",
+        labelName: "姓名 / Name:", labelID: "学号 / Student ID:",
+        nextBtn: "确认 / Confirm",
+        statsTotal: "答题数", statsAcc: "正确率", statsSpeed: "平均耗时",
+        grade: "评级", weakChapter: "薄弱章节",
+        importBtn: "📂 导入题库", importSuccess: "✅ 题库导入成功！", importFail: "❌ 格式错误！",
+        chapters: {
+            all: "🔥 综合训练 (高考真题)",
+            hydrocarbon: "CH.1 烃类基础",
+            halogen: "CH.2 卤代烃",
+            alcohol_phenol: "CH.3 醇与酚",
+            aldehyde: "CH.4 醛与酮",
+            acid_ester: "CH.5 酸与酯",
+            nitrogen: "CH.6 含氮化合物",
+            polymer: "CH.7 高分子与合成"
+        },
+        types: { Substitution: "取代反应", Addition: "加成反应", Elimination: "消去反应", Oxidation: "氧化反应", Reduction: "还原反应", Polymerisation: "聚合反应" }
+    },
+    en: {
+        score: "Score", combo: "Combo",
+        mode1p: "👤 1P Mode", mode2p: "👥 2P Mode",
+        langBtn: "🌐 Language/语言 (L)", newGame: "New Game (Space)",
+        chapterLabel: "Chapter(Tab):", timerLabel: "Timer(T):", on: "On",
+        speedLabel: "Speed:", audioLabel: "Audio:", keyMapBtn: "Controls",
+        rankTitle: "🏆 Leaderboard", wrongTitle: "📚 Wrong Log", clearBtn: "Clear",
+        hintMove: "Move", hintFlow: "System", hintStart: "Start", hintPause: "Pause",
+        hintMode: "Mode", hintSound: "Audio", hintTime: "Timer", hintSpeed: "Speed",
+        gameOver: "Game Over", draw: "Draw", wins: " Wins", died: " Died",
+        reasonDisappear: "Disappeared", reasonTime: "Time's Up", reasonCrash: "Crashed", reasonSelf: "Self Collision",
+        playAgain: "Play Again", saveScore: "Save Score", close: "Close", report: "📊 Analytics Report", copyBtn: "📋 Copy Report", copySuccess: "✅ Report Copied!",
+        saveTitle: "Save Score", reportTitle: "🧪 Learning Analytics",
+        loginTitle: "🎓 Student Login",
+        labelName: "Name:", labelID: "Student ID:",
+        nextBtn: "Confirm",
+        statsTotal: "Questions", statsAcc: "Accuracy", statsSpeed: "Avg Time",
+        grade: "Grade", weakChapter: "Weak Point",
+        importBtn: "📂 Import Data", importSuccess: "✅ Data Imported!", importFail: "❌ Invalid Format!",
+        chapters: {
+            all: "🔥 Comprehensive (Exam)",
+            hydrocarbon: "CH.1 Hydrocarbons",
+            halogen: "CH.2 Halogens",
+            alcohol_phenol: "CH.3 Alcohols & Phenols",
+            aldehyde: "CH.4 Aldehydes & Ketones",
+            acid_ester: "CH.5 Acids & Esters",
+            nitrogen: "CH.6 Nitrogen Comp.",
+            polymer: "CH.7 Polymers"
+        },
+        types: { Substitution: "Substitution", Addition: "Addition", Elimination: "Elimination", Oxidation: "Oxidation", Reduction: "Reduction", Polymerisation: "Polymerisation" }
+    }
+};
+
+let compoundsCore = {"CH4":{formula:"CH₄",zh:{name:"甲烷"},en:{name:"Methane"}},"C2H6":{formula:"CH₃CH₃",zh:{name:"乙烷"},en:{name:"Ethane"}},"C2H4":{formula:"CH₂=CH₂",zh:{name:"乙烯"},en:{name:"Ethene"}},"C2H2":{formula:"HC≡CH",zh:{name:"乙炔"},en:{name:"Ethyne"}},"Bz":{formula:"C₆H₆",zh:{name:"苯"},en:{name:"Benzene"}},"Toluene":{formula:"C₆H₅CH₃",zh:{name:"甲苯"},en:{name:"Toluene"}},"Styrene":{formula:"C₆H₅CH=CH₂",zh:{name:"苯乙烯"},en:{name:"Styrene"}},"Cyclohexane":{formula:"C₆H₁₂",zh:{name:"环己烷"},en:{name:"Cyclohexane"}},"13Butadiene":{formula:"C₄H₆",zh:{name:"1,3-丁二烯"},en:{name:"1,3-Butadiene"}},"CH3Cl":{formula:"CH₃Cl",zh:{name:"一氯甲烷"},en:{name:"Chloromethane"}},"C2H5Cl":{formula:"CH₃CH₂Cl",zh:{name:"氯乙烷"},en:{name:"Chloroethane"}},"C2H5Br":{formula:"CH₃CH₂Br",zh:{name:"溴乙烷"},en:{name:"Bromoethane"}},"12Dibromo":{formula:"CH₂BrCH₂Br",zh:{name:"1,2-二溴乙烷"},en:{name:"1,2-Dibromoethane"}},"BzBr":{formula:"C₆H₅Br",zh:{name:"溴苯"},en:{name:"Bromobenzene"}},"PVC_m":{formula:"CH₂=CHCl",zh:{name:"氯乙烯"},en:{name:"Vinyl Chloride"}},"EtOH":{formula:"C₂H₅OH",zh:{name:"乙醇"},en:{name:"Ethanol"}},"Glycol":{formula:"HOCH₂CH₂OH",zh:{name:"乙二醇"},en:{name:"Ethylene Glycol"}},"Phenol":{formula:"C₆H₅OH",zh:{name:"苯酚"},en:{name:"Phenol"}},"TribromoPh":{formula:"C₆H₂Br₃OH",zh:{name:"三溴苯酚"},en:{name:"Tribromophenol"}},"NaPhenolate":{formula:"C₆H₅ONa",zh:{name:"苯酚钠"},en:{name:"Sodium Phenoxide"}},"HCHO":{formula:"HCHO",zh:{name:"甲醛"},en:{name:"Methanal"}},"CH3CHO":{formula:"CH₃CHO",zh:{name:"乙醛"},en:{name:"Ethanal"}},"Glyoxal":{formula:"OHC-CHO",zh:{name:"乙二醛"},en:{name:"Glyoxal"}},"Acetone":{formula:"CH₃COCH₃",zh:{name:"丙酮"},en:{name:"Acetone"}},"BzCHO":{formula:"C₆H₅CHO",zh:{name:"苯甲醛"},en:{name:"Benzaldehyde"}},"HCOOH":{formula:"HCOOH",zh:{name:"甲酸"},en:{name:"Formic Acid"}},"AcOH":{formula:"CH₃COOH",zh:{name:"乙酸"},en:{name:"Acetic Acid"}},"OxalicAcid":{formula:"HOOC-COOH",zh:{name:"乙二酸"},en:{name:"Oxalic Acid"}},"BzOH":{formula:"C₆H₅COOH",zh:{name:"苯甲酸"},en:{name:"Benzoic Acid"}},"EtOAc":{formula:"CH₃COOC₂H₅",zh:{name:"乙酸乙酯"},en:{name:"Ethyl Acetate"}},"MeMethacrylate":{formula:"C₅H₈O₂",zh:{name:"MMA"},en:{name:"MMA"}},"SalicylicAcid":{formula:"C₇H₆O₃",zh:{name:"水杨酸"},en:{name:"Salicylic Acid"}},"Aspirin":{formula:"C₉H₈O₄",zh:{name:"阿司匹林"},en:{name:"Aspirin"}},"NitroBz":{formula:"C₆H₅NO₂",zh:{name:"硝基苯"},en:{name:"Nitrobenzene"}},"Aniline":{formula:"C₆H₅NH₂",zh:{name:"苯胺"},en:{name:"Aniline"}},"Acetanilide":{formula:"C₈H₉NO",zh:{name:"乙酰苯胺"},en:{name:"Acetanilide"}},"TNT":{formula:"TNT",zh:{name:"TNT"},en:{name:"TNT"}},"TribromoAniline":{formula:"C₆H₂Br₃NH₂",zh:{name:"三溴苯胺"},en:{name:"Tribromoaniline"}},"PE":{formula:"[CH₂-CH₂]n",zh:{name:"聚乙烯"},en:{name:"PE"}},"PVC":{formula:"[CH₂-CHCl]n",zh:{name:"聚氯乙烯"},en:{name:"PVC"}},"PS":{formula:"[CH₂-CHPh]n",zh:{name:"聚苯乙烯"},en:{name:"PS"}},"PMMA":{formula:"[PMMA]n",zh:{name:"有机玻璃"},en:{name:"PMMA"}},"PhenolicResin":{formula:"Resin",zh:{name:"酚醛树脂"},en:{name:"Phenolic Resin"}},"PET":{formula:"PET",zh:{name:"PET酯"},en:{name:"PET"}},"Rubber":{formula:"[Rubber]n",zh:{name:"顺丁橡胶"},en:{name:"Rubber"}},"CO2":{formula:"CO₂",zh:{name:"二氧化碳"},en:{name:"CO2"}},"H2O":{formula:"H₂O",zh:{name:"水"},en:{name:"Water"}}};
+let reactionsCore = [{chapter:"hydrocarbon",from:"CH4",to:"CH3Cl",type:"Substitution",cond:{zh:"Cl₂, 光照",en:"Cl₂, Light"}},{chapter:"hydrocarbon",from:"C2H4",to:"C2H6",type:"Addition",cond:{zh:"H₂, Ni, 加热",en:"H₂, Ni, Heat"}},{chapter:"hydrocarbon",from:"C2H4",to:"12Dibromo",type:"Addition",cond:{zh:"Br₂ (CCl₄)",en:"Br₂ (CCl₄)"}},{chapter:"hydrocarbon",from:"C2H4",to:"PE",type:"Polymerisation",cond:{zh:"催化剂, 高温高压",en:"Cat., High P"}},{chapter:"hydrocarbon",from:"C2H2",to:"C2H4",type:"Addition",cond:{zh:"H₂, 催化剂(控制)",en:"H₂, Cat(ctrl)"}},{chapter:"hydrocarbon",from:"Bz",to:"Cyclohexane",type:"Addition",cond:{zh:"3H₂, Ni, 加热",en:"3H₂, Ni, Heat"}},{chapter:"hydrocarbon",from:"Bz",to:"BzBr",type:"Substitution",cond:{zh:"液溴, FeBr₃",en:"Liq. Br₂, FeBr₃"}},{chapter:"halogen",from:"C2H4",to:"C2H5Br",type:"Addition",cond:{zh:"HBr",en:"HBr"}},{chapter:"halogen",from:"C2H5Br",to:"EtOH",type:"Substitution",cond:{zh:"NaOH 水溶液, 加热",en:"NaOH(aq), Heat"}},{chapter:"halogen",from:"C2H5Br",to:"C2H4",type:"Elimination",cond:{zh:"NaOH 醇溶液, 加热",en:"NaOH(alc), Heat"}},{chapter:"halogen",from:"12Dibromo",to:"Glycol",type:"Substitution",cond:{zh:"NaOH 水溶液, 加热",en:"NaOH(aq), Heat"}},{chapter:"halogen",from:"12Dibromo",to:"C2H2",type:"Elimination",cond:{zh:"NaOH 醇溶液, 加热",en:"NaOH(alc), Heat"}},{chapter:"halogen",from:"C2H2",to:"PVC_m",type:"Addition",cond:{zh:"HCl, 催化剂",en:"HCl, Cat."}},{chapter:"alcohol_phenol",from:"C2H4",to:"EtOH",type:"Addition",cond:{zh:"H₂O, 催化剂",en:"H₂O, Cat."}},{chapter:"alcohol_phenol",from:"EtOH",to:"C2H4",type:"Elimination",cond:{zh:"浓H₂SO₄, 170℃",en:"H₂SO₄, 170℃"}},{chapter:"alcohol_phenol",from:"EtOH",to:"CH3CHO",type:"Oxidation",cond:{zh:"O₂, Cu, 加热",en:"O₂, Cu, Heat"}},{chapter:"alcohol_phenol",from:"Phenol",to:"TribromoPh",type:"Substitution",cond:{zh:"浓溴水",en:"Conc. Br₂"}},{chapter:"alcohol_phenol",from:"Phenol",to:"NaPhenolate",type:"Acid-Base",cond:{zh:"NaOH 或 Na",en:"NaOH/Na"}},{chapter:"alcohol_phenol",from:"NaPhenolate",to:"Phenol",type:"Acid-Base",cond:{zh:"CO₂ + H₂O",en:"CO₂ + H₂O"}},{chapter:"alcohol_phenol",from:"BzBr",to:"NaPhenolate",type:"Substitution",cond:{zh:"NaOH, 高温高压",en:"NaOH, High P"}},{chapter:"aldehyde",from:"EtOH",to:"CH3CHO",type:"Oxidation",cond:{zh:"O₂, Cu, 加热",en:"O₂, Cu"}},{chapter:"aldehyde",from:"CH3CHO",to:"EtOH",type:"Reduction",cond:{zh:"H₂, Ni, 加热",en:"H₂, Ni"}},{chapter:"aldehyde",from:"CH3CHO",to:"AcOH",type:"Oxidation",cond:{zh:"酸性 KMnO₄",en:"Acidic KMnO₄"}},{chapter:"aldehyde",from:"CH3CHO",to:"AcOH",type:"Oxidation",cond:{zh:"银氨溶液 (银镜)",en:"Tollens'"}},{chapter:"aldehyde",from:"Glycol",to:"Glyoxal",type:"Oxidation",cond:{zh:"O₂, Cu, 加热",en:"O₂, Cu"}},{chapter:"aldehyde",from:"Glyoxal",to:"OxalicAcid",type:"Oxidation",cond:{zh:"O₂, 催化剂",en:"O₂, Cat."}},{chapter:"aldehyde",from:"Acetone",to:"Isopropanol",type:"Reduction",cond:{zh:"H₂, Ni",en:"H₂, Ni"}},{chapter:"acid_ester",from:"AcOH",to:"EtOAc",type:"Esterification",cond:{zh:"EtOH, 浓H₂SO₄",en:"EtOH, H₂SO₄"}},{chapter:"acid_ester",from:"EtOAc",to:"AcOH",type:"Hydrolysis",cond:{zh:"稀H₂SO₄, 加热",en:"Dilute H₂SO₄"}},{chapter:"acid_ester",from:"EtOAc",to:"EtOH",type:"Hydrolysis",cond:{zh:"NaOH 溶液, 加热",en:"NaOH(aq)"}},{chapter:"acid_ester",from:"Toluene",to:"BzOH",type:"Oxidation",cond:{zh:"酸性 KMnO₄",en:"Acidic KMnO₄"}},{chapter:"acid_ester",from:"SalicylicAcid",to:"Aspirin",type:"Esterification",cond:{zh:"乙酸酐",en:"Ac₂O"}},{chapter:"acid_ester",from:"Glycol",to:"PET",type:"Polycondensation",cond:{zh:"对苯二甲酸",en:"Terephthalic Acid"}},{chapter:"nitrogen",from:"Bz",to:"NitroBz",type:"Substitution",cond:{zh:"浓HNO₃/H₂SO₄",en:"Conc. HNO₃"}},{chapter:"nitrogen",from:"Toluene",to:"TNT",type:"Substitution",cond:{zh:"浓HNO₃, 加热",en:"Conc. HNO₃"}},{chapter:"nitrogen",from:"NitroBz",to:"Aniline",type:"Reduction",cond:{zh:"Fe / HCl",en:"Fe / HCl"}},{chapter:"nitrogen",from:"Aniline",to:"Acetanilide",type:"Substitution",cond:{zh:"乙酸酐/乙酰氯",en:"Ac₂O/AcCl"}},{chapter:"nitrogen",from:"Aniline",to:"TribromoAniline",type:"Substitution",cond:{zh:"浓溴水",en:"Conc. Br₂"}},{chapter:"polymer",from:"C2H4",to:"PE",type:"Polymerisation",cond:{zh:"催化剂, 高温高压",en:"Cat., High P"}},{chapter:"polymer",from:"Styrene",to:"PS",type:"Polymerisation",cond:{zh:"催化剂",en:"Catalyst"}},{chapter:"polymer",from:"PVC_m",to:"PVC",type:"Polymerisation",cond:{zh:"引发剂",en:"Initiator"}},{chapter:"polymer",from:"MeMethacrylate",to:"PMMA",type:"Polymerisation",cond:{zh:"引发剂",en:"Initiator"}},{chapter:"polymer",from:"Phenol",to:"PhenolicResin",type:"Polycondensation",cond:{zh:"HCHO, 催化剂",en:"HCHO, Cat."}},{chapter:"polymer",from:"13Butadiene",to:"Rubber",type:"Polymerisation",cond:{zh:"Na (催化)",en:"Na"}}];
+
+/* =================================================================
+   [ENGINE] 核心引擎
+   ================================================================= */
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+let width, height;
+let GRID_OFFSET_X=12, GRID_OFFSET_Y=160;
+let CELL=24, COLS=30, ROWS=20;
+let dpr = window.devicePixelRatio || 1;
+
+let modePlayers = 1;
+let snake1=[], snake2=[];
+let dir1={x:1,y:0}, dir2={x:-1,y:0};
+let pendingDir1=null, pendingDir2=null;
+let scoreP1=0, scoreP2=0;
+let comboP1=0, comboP2=0;
+let boardItems=[], floatTexts=[];
+let currentRxn=null, mode='product';
+let speed=200;
+let gameInterval = null; 
+let gameOver=false, isPaused=false, lang='zh';
+let isGameReady = false;
+let isTurbo = false; // [NEW] Turbo State
+
+let lastRxn = null;
+let usedRxnIndices = []; 
+
+let gameStats = { playerInfo: null, startTime: 0, endTime: 0, totalQs: 0, correctCount: 0, wrongCount: 0, maxCombo: 0, byChapter: {}, byType: {}, mistakes: [] };
+
+let isBgmOn=false, isSfxOn=false;
+let timedMode=false, timeLeft=0, timerId=null;
+let lastBombTimeP1 = 0, lastBombTimeP2 = 0;
+let lastBtnStates = [[], []];
+
+let lastPadNavTime=0;
+let modalFocusIndex=0, isModalOpen=false, modalFocusables=[];
+let activeKeyboardInput=null;
+let isCaps = true;
+let isChineseInput = false;
+let zhPageIndex = 0;
+
+const ui = { scoreContainer: document.getElementById('scoreContainer'), modeBtn: document.getElementById('modeSwitchBtn'), eqLeft: document.getElementById('eqLeft'), eqRight: document.getElementById('eqRight'), eqCond: document.getElementById('eqCond'), langBtn: document.getElementById('langToggle'), chapterSelect: document.getElementById('chapterSelect'), timedToggle: document.getElementById('timedToggle'), durationSelect: document.getElementById('durationSelect'), timeDisplay: document.getElementById('timeDisplay'), speedRange: document.getElementById('speedRange'), bgmToggle: document.getElementById('bgmToggle'), sfxToggle: document.getElementById('sfxToggle'), rankList: document.getElementById('rankList'), wrongLog: document.getElementById('wrongLog') };
+
+// KEYBOARD LAYOUTS
+const VK_EN = [ 
+    ["1","2","3","4","5","6","7","8","9","0"], 
+    ["Q","W","E","R","T","Y","U","I","O","P"], 
+    ["A","S","D","F","G","H","J","K","L"], 
+    ["Z","X","C","V","B","N","M",".","-"], 
+    ["🌐", "CAPS", "SPACE", "_", "DEL", "DONE"] 
+];
+
+const ZH_CHARS = "王李张刘陈杨黄赵吴周徐孙马朱胡林郭何高罗郑梁谢宋唐许韩冯邓曹彭曾萧田董潘袁于余叶兰鲍史唐邵崔康姚姜毛狄米贝明宇文杰豪伟正明飞英华强军平保东文辉力明永健世广志义兴良海山仁波宁贵福生龙元全国胜学祥才发武新利清飞彬富顺信子杰涛昌成康星光天达安岩中茂进林有坚和彪博诚先敬震振壮会思群豪心邦承乐绍功松善厚庆磊民友裕河哲江超浩亮政谦亨奇固之轮翰朗伯宏言若鸣朋斌梁栋维启克伦翔旭鹏泽晨辰士以建家致树炎德行时泰盛雄琛钧冠策腾楠榕风航弘";
+
+function playSfx(name){ sounds.play(name); }
+function toggleBGM(inGame){ sounds.toggleBGM(inGame); }
+function getComp(id){ if(!compoundsCore[id]) return {name:id, formula:id}; const c=compoundsCore[id]; const loc=lang==='zh'?c.zh:c.en; return {name:loc.name, formula:c.formula}; }
+function drawRoundRect(ctx, x, y, w, h, r) { if (w < 2 * r) r = w / 2; if (h < 2 * r) r = h / 2; ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+
+function updateUILanguage() {
+    const t = i18n[lang];
+    ui.langBtn.textContent = t.langBtn; ui.langBtn.className = lang==='zh'?"btn-sub btn-zh":"btn-sub btn-en";
+    document.getElementById('newGameBtn').textContent = t.newGame; document.getElementById('keyMapBtn').textContent = t.keyMapBtn;
+    document.querySelector('[data-i18n="chapterLabel"]').textContent = t.chapterLabel;
+    document.querySelector('[data-i18n="timerLabel"]').textContent = t.timerLabel;
+    document.querySelector('[data-i18n="on"]').textContent = t.on;
+    document.querySelector('[data-i18n="speedLabel"]').textContent = t.speedLabel;
+    document.querySelector('[data-i18n="audioLabel"]').textContent = t.audioLabel;
+    document.querySelector('[data-i18n="rankTitle"]').textContent = t.rankTitle;
+    document.querySelector('[data-i18n="wrongTitle"]').textContent = t.wrongTitle;
+    document.querySelectorAll('[data-i18n="clearBtn"]').forEach(b => b.textContent = t.clearBtn);
+    document.querySelector('[data-i18n="hintMove"]').textContent = t.hintMove;
+    document.querySelector('[data-i18n="hintFlow"]').textContent = t.hintFlow;
+    document.querySelector('[data-i18n="hintStart"]').textContent = t.hintStart;
+    document.querySelector('[data-i18n="hintPause"]').textContent = t.hintPause;
+    document.querySelector('[data-i18n="hintMode"]').textContent = t.hintMode;
+    document.querySelector('[data-i18n="hintSound"]').textContent = t.hintSound;
+    document.querySelector('[data-i18n="hintTime"]').textContent = t.hintTime;
+    document.querySelector('[data-i18n="hintSpeed"]').textContent = t.hintSpeed;
+    document.getElementById('importBtn').textContent = t.importBtn;
+
+    const currentVal = ui.chapterSelect.value; ui.chapterSelect.innerHTML = "";
+    for (const [key, val] of Object.entries(t.chapters)) { const opt = document.createElement('option'); opt.value = key; opt.textContent = val; ui.chapterSelect.appendChild(opt); }
+    ui.chapterSelect.value = currentVal || 'all';
+    updateModeUI(); updateEqUI();
+}
+
+ui.modeBtn.onclick = () => togglePlayerMode();
+function togglePlayerMode() { playSfx('click'); modePlayers = (modePlayers === 1) ? 2 : 1; updateModeUI(); initGame(true); }
+function updateModeUI(){
+    const t = i18n[lang]; ui.modeBtn.textContent = modePlayers===1 ? t.mode1p : t.mode2p;
+    if(modePlayers===1){ ui.scoreContainer.innerHTML = `<div class="score-box score-1p"><div class="p-unit p1-c"><span class="p-lbl">${t.score}</span><span class="p-val" id="scoreP1Val">0</span></div><div class="p-unit" style="color:#a5b4fc"><span class="p-lbl">${t.combo}</span><span class="p-val" id="comboP1Val">0</span></div><div class="ctrl-badge" id="ctrlP1">⌨️/🎮</div></div>`; } 
+    else { ui.scoreContainer.innerHTML = `<div class="score-box score-2p"><div class="p-unit p1-c"><span class="p-lbl">P1 (Blue)</span><span class="p-val" id="scoreP1Val">0</span><div class="ctrl-badge" id="ctrlP1">WASD/Pad1</div></div><div style="width:1px;height:40px;background:#374151"></div><div class="p-unit p2-c"><span class="p-lbl">P2 (Red)</span><span class="p-val" id="scoreP2Val">0</span><div class="ctrl-badge" id="ctrlP2">Arrow/Pad2</div></div></div>`; }
+    updateScoresUI();
+}
+
+// [NEW] Turbo Logic
+function updateGameSpeed() {
+    if (gameInterval) clearInterval(gameInterval);
+    // If turbo is on, set speed to 80ms, otherwise calculate from slider
+    let currentSpeed = isTurbo ? 80 : (320 - parseInt(ui.speedRange.value) * 25);
+    speed = currentSpeed;
+    if (!isPaused && !gameOver && isGameReady) {
+        gameInterval = setInterval(gameLoop, speed);
+    }
+}
+
+function setTurbo(active) {
+    if (isTurbo === active) return;
+    isTurbo = active;
+    const btn = document.getElementById('turboBtn');
+    if(btn) { if(active) btn.classList.add('active'); else btn.classList.remove('active'); }
+    updateGameSpeed();
+}
+
+function initGame(resetScores=true){
+  closeAllModals(); resizeCanvas();
+  const cy = Math.floor(ROWS/2);
+  snake1 = []; for(let i=0;i<5;i++) snake1.push({x:5-i, y:cy-(modePlayers===2?3:0)}); dir1={x:1,y:0}; pendingDir1=null;
+  snake2 = []; if(modePlayers===2){ for(let i=0;i<5;i++) snake2.push({x:COLS-6+i, y:cy+3}); dir2={x:-1,y:0}; pendingDir2=null; }
+  if(resetScores){ scoreP1=0; scoreP2=0; comboP1=0; comboP2=0; ui.wrongLog.innerHTML=""; usedRxnIndices = []; lastRxn = null; gameStats = { playerInfo: null, startTime: Date.now(), endTime: 0, totalQs: 0, correctCount: 0, wrongCount: 0, maxCombo: 0, byChapter: {}, byType: {}, mistakes: [] }; }
+  gameOver=false; isPaused=false; floatTexts=[]; updateScoresUI();
+  if(resetScores || !currentRxn) nextQuestion();
+  updateCtrlBadges(); checkTimerState();
+  if(timedMode && timeLeft>0){ if(timerId) clearInterval(timerId); timerId=setInterval(tickTimer, 1000); }
+  
+  isTurbo = false; // Reset
+  updateGameSpeed(); // Start
+  
+  isGameReady = true; toggleBGM(true);
+}
+
+function renderLoop() {
+  if(isModalOpen) pollGamepadsForModal(); 
+  else if(gameOver) pollGamepadsForRestart();
+  else pollGamepadsForGameplay(); // Always poll for turbo check
+  updateCtrlBadges();
+  if(isGameReady) { try { draw(); if(isPaused) { ctx.fillStyle="rgba(0,0,0,0.5)"; ctx.fillRect(0,0,width,height); ctx.fillStyle="#facc15"; ctx.font="bold 40px sans-serif"; ctx.textAlign="center"; ctx.fillText(lang==='zh'?"暂停 PAUSED":"PAUSED", width/2, height/2); } } catch(e){} }
+  requestAnimationFrame(renderLoop);
+}
+requestAnimationFrame(renderLoop);
+
+function gameLoop() { if(!gameOver && !isPaused && !isModalOpen){ moveSnakes(); } }
+function updateCtrlBadges() { const gps = navigator.getGamepads(); let pads=[]; for(let g of gps) if(g) pads.push(g); const c1 = document.getElementById('ctrlP1'); const c2 = document.getElementById('ctrlP2'); if(!c1) return; if(modePlayers === 1) { c1.textContent = (pads.length>0) ? "⌨️/🎮" : "⌨️"; } else { c1.textContent = (pads.length>=1) ? "🎮 Pad 1" : "⌨️ WASD"; c2.textContent = (pads.length>=2) ? "🎮 Pad 2" : "⌨️ Arrow"; } }
+
+function moveSnakes(){
+  if(pendingDir1 && !(pendingDir1.x===-dir1.x && pendingDir1.y===-dir1.y)) dir1=pendingDir1; pendingDir1=null; updateSnake(1, snake1, dir1);
+  if(modePlayers === 2){ if(pendingDir2 && !(pendingDir2.x===-dir2.x && pendingDir2.y===-dir2.y)) dir2=pendingDir2; pendingDir2=null; updateSnake(2, snake2, dir2); }
+  if(!gameOver){ const t = i18n[lang]; if(modePlayers===1 && snake1.length===0) endGame(t.reasonDisappear); if(modePlayers===2){ if(snake1.length===0) endGame("P1" + t.died + " (P2" + t.wins + ")"); else if(snake2.length===0) endGame("P2" + t.died + " (P1" + t.wins + ")"); } }
+}
+
+function updateSnake(pid, snake, dir){
+  if(snake.length===0) return;
+  const head={x:snake[0].x+dir.x, y:snake[0].y+dir.y};
+  if(head.x>=COLS) head.x=0; else if(head.x<0) head.x=COLS-1; if(head.y>=ROWS) head.y=0; else if(head.y<0) head.y=ROWS-1;
+  if(snake.some(s=>s.x===head.x && s.y===head.y)){ handleCrash(pid); return; }
+  if(modePlayers===2){ const other = pid===1?snake2:snake1; if(other.some(s=>s.x===head.x && s.y===head.y)){ handleCrash(pid); return; } }
+  snake.unshift(head);
+  const idx = boardItems.findIndex(i=>i.x===head.x && i.y===head.y);
+  if(idx!==-1){
+    const item = boardItems[idx]; trackAnswer(item.isCorrect, currentRxn, item);
+    if(item.isCorrect){ playSfx('eat'); vibrate(pid, 'light'); const combo = pid===1 ? ++comboP1 : ++comboP2; if(combo > gameStats.maxCombo) gameStats.maxCombo = combo; const pts = 10 + 2*(combo-1); if(pid===1) scoreP1+=pts; else scoreP2+=pts; addFloat(head.x, head.y, `+${pts}`, pid===1?"#60a5fa":"#f87171"); boardItems = []; nextQuestion(); } 
+    else { playSfx('die'); vibrate(pid, 'strong'); if(pid===1){ comboP1=0; scoreP1-=5; } else { comboP2=0; scoreP2-=5; } addFloat(head.x, head.y, "-5", "#ef4444"); logWrong(pid, item); if(snake.length > 0) snake.pop(); if(snake.length > 0) snake.pop(); boardItems.splice(idx, 1); spawnOneDistractor(); }
+  } else { snake.pop(); }
+  if(snake.length === 0) return; updateScoresUI();
+}
+
+function handleCrash(pid){ playSfx('die'); vibrate(pid, 'strong'); if(pid===1){ comboP1=0; scoreP1 -= 15; snake1=[]; } else { comboP2=0; scoreP2 -= 15; snake2=[]; } addFloat(pid===1?dir1.x:dir2.x, 0, "CRASH", "#ef4444"); updateScoresUI(); }
+
+function spawnOneDistractor(){
+    if(!currentRxn) return;
+    const correctVal = mode==='product' ? currentRxn.to : currentRxn.cond[lang];
+    let pool = []; if(mode==='product') pool = Object.keys(compoundsCore).filter(k=>k!==currentRxn.from && k!==currentRxn.to); else pool = [...new Set(reactionsCore.map(r=>r.cond[lang]))].filter(c=>c!==correctVal);
+    const existingVals = boardItems.map(i=>i.val); const available = pool.filter(v => !existingVals.includes(v)); const r = available.length > 0 ? available[Math.floor(Math.random()*available.length)] : pool[0];
+    let p, ok=false, t=0;
+    while(!ok && t<50){ t++; p={x:Math.floor(Math.random()*(COLS-4))+2, y:Math.floor(Math.random()*(ROWS-4))+2}; if(!snake1.some(s=>Math.abs(s.x-p.x)<2 && Math.abs(s.y-p.y)<2) && (!snake2 || !snake2.some(s=>Math.abs(s.x-p.x)<2 && Math.abs(s.y-p.y)<2)) && !boardItems.some(i=>Math.abs(i.x-p.x)<3 && Math.abs(i.y-p.y)<3)) ok=true; }
+    if(ok && boardItems.some(i => Math.abs(i.x - p.x) < 4 && Math.abs(i.y - p.y) < 4)) ok = false;
+    if(ok) boardItems.push({x:p.x, y:p.y, val:r, kind:mode==='product'?'prod':'cond', isCorrect:val===correctVal});
+}
+
+function nextQuestion(){
+  const chapter = ui.chapterSelect.value; let activeIndices = [];
+  if(chapter === 'all') { activeIndices = reactionsCore.map((_, i) => i); } else { activeIndices = reactionsCore.map((r, i) => (r.chapter === chapter ? i : -1)).filter(i => i !== -1); }
+  let availableIndices = activeIndices.filter(i => !usedRxnIndices.includes(i));
+  if(availableIndices.length === 0){ if(activeIndices.length === 0) { currentRxn = reactionsCore[0]; } else { usedRxnIndices = usedRxnIndices.filter(i => !activeIndices.includes(i)); availableIndices = activeIndices; } }
+  let nextIdx = -1;
+  if (lastRxn) { const chainCandidates = availableIndices.filter(i => reactionsCore[i].from === lastRxn.to); if (chainCandidates.length > 0 && Math.random() < 0.7) { nextIdx = chainCandidates[Math.floor(Math.random() * chainCandidates.length)]; } }
+  if (nextIdx === -1) { nextIdx = availableIndices[Math.floor(Math.random() * availableIndices.length)]; }
+  if(lastRxn && reactionsCore[nextIdx] === lastRxn && availableIndices.length > 1) { const otherIndices = availableIndices.filter(i => i !== nextIdx); nextIdx = otherIndices[Math.floor(Math.random() * otherIndices.length)]; }
+  currentRxn = reactionsCore[nextIdx]; usedRxnIndices.push(nextIdx); lastRxn = currentRxn;
+  mode = Math.random()<0.5 ? 'product':'condition';
+  const correctVal = mode==='product' ? currentRxn.to : currentRxn.cond[lang];
+  const opts = [correctVal]; let pool = [];
+  if(mode==='product') pool = Object.keys(compoundsCore).filter(k=>k!==currentRxn.from && k!==currentRxn.to); else pool = [...new Set(reactionsCore.map(r=>r.cond[lang]))].filter(c=>c!==correctVal);
+  while(opts.length < 5){ const r = pool[Math.floor(Math.random()*pool.length)]; if(!opts.includes(r)) opts.push(r); }
+  boardItems = [];
+  opts.forEach(val => {
+    let p, ok=false, t=0;
+    while(!ok && t<50){ t++; p={x:Math.floor(Math.random()*(COLS-4))+2, y:Math.floor(Math.random()*(ROWS-4))+2}; if(!snake1.some(s=>Math.abs(s.x-p.x)<2 && Math.abs(s.y-p.y)<2) && (!snake2 || !snake2.some(s=>Math.abs(s.x-p.x)<2 && Math.abs(s.y-p.y)<2)) && !boardItems.some(i=>Math.abs(i.x-p.x)<3 && Math.abs(i.y-p.y)<3)) ok=true; }
+    if(ok && boardItems.some(i => Math.abs(i.x - p.x) < 4 && Math.abs(i.y - p.y) < 4)) ok = false;
+    if(ok) boardItems.push({x:p.x, y:p.y, val, kind:mode==='product'?'prod':'cond', isCorrect:val===correctVal});
+  });
+  updateEqUI();
+}
+
+function updateEqUI(){
+  if(!currentRxn) return;
+  const rf = getComp(currentRxn.from); ui.eqLeft.innerHTML = `<span class="eq-name">${rf.name}</span> <span class="eq-chem" style="font-size:26px">${rf.formula}</span>`;
+  if(mode==='product'){ ui.eqCond.textContent = currentRxn.cond[lang]; ui.eqRight.innerHTML = "???"; ui.eqRight.classList.add('eq-unknown'); } else { ui.eqCond.textContent = "???"; const rt = getComp(currentRxn.to); ui.eqRight.innerHTML = `<span class="eq-chem" style="font-size:26px">${rt.formula}</span> <span class="eq-name">${rt.name}</span>`; ui.eqRight.classList.remove('eq-unknown'); }
+}
+
+function updateScoresUI(){ const p1v = document.getElementById('scoreP1Val'); if(p1v) p1v.textContent = scoreP1; if(modePlayers===1){ const c1 = document.getElementById('comboP1Val'); if(c1) c1.textContent = comboP1; } else { const p2v = document.getElementById('scoreP2Val'); if(p2v) p2v.textContent = scoreP2; } }
+
+function trackAnswer(isCorrect, rxn, item) {
+    if (!gameStats) return; const ch = rxn.chapter || "other"; const type = rxn.type || "other";
+    if (!gameStats.byChapter[ch]) gameStats.byChapter[ch] = { total: 0, correct: 0 };
+    if (!gameStats.byType[type]) gameStats.byType[type] = { total: 0, correct: 0 };
+    if (isCorrect) { gameStats.totalQs++; gameStats.correctCount++; gameStats.byChapter[ch].total++; gameStats.byChapter[ch].correct++; gameStats.byType[type].total++; gameStats.byType[type].correct++; } 
+    else { gameStats.wrongCount++; gameStats.byChapter[ch].total++; gameStats.byType[type].total++; const qStr = `${getComp(rxn.from).formula} + ${rxn.cond[lang]}`; const ansStr = item.kind==='cond' ? item.val : getComp(item.val).formula; gameStats.mistakes.push({ q: qStr, wrong: ansStr, right: mode==='product' ? getComp(rxn.to).formula : rxn.cond[lang] }); }
+}
+
+function logWrong(pid, item){ const div = document.createElement('div'); div.className = "log-item"; const tag = pid===1 ? `<span class="p1-tag">P1</span>` : `<span class="p2-tag">P2</span>`; const valStr = item.kind==='cond' ? item.val : getComp(item.val).formula; div.innerHTML = `${tag} 误食: ${valStr}`; ui.wrongLog.prepend(div); }
+function addFloat(x,y,t,c){ floatTexts.push({x,y,t,c,life:30}); }
+
+function resizeCanvas(){
+  width=window.innerWidth; height=window.innerHeight; if(width===0) return;
+  canvas.style.width=width+"px"; canvas.style.height=height+"px"; canvas.width=width*dpr; canvas.height=height*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+  const panel = document.getElementById('infoPanel'); GRID_OFFSET_Y = panel.getBoundingClientRect().bottom + 25; GRID_OFFSET_X=12;
+  const availH = height - GRID_OFFSET_Y - 110; if(availH < 100) return; 
+  CELL = Math.max(16, Math.floor(Math.min((width-24)/25, availH/20))); COLS = Math.floor((width-24)/CELL); ROWS = Math.floor(availH/CELL);
+}
+window.addEventListener('resize', ()=>{resizeCanvas();});
+
+function getThemeForRxn(r){
+  if(!r) return {c1:"#0f172a", c2:"#1e293b"}; 
+  switch(r.chapter){ case "hydrocarbon": return {c1:"#0f172a", c2:"#1e3a8a"}; case "halogen": return {c1:"#064e3b", c2:"#065f46"}; case "alcohol_phenol": return {c1:"#4c1d95", c2:"#5b21b6"}; case "aldehyde": return {c1:"#7f1d1d", c2:"#991b1b"}; case "acid_ester": return {c1:"#713f12", c2:"#854d0e"}; case "nitrogen": return {c1:"#0f766e", c2:"#134e4a"}; case "polymer": return {c1:"#111827", c2:"#374151"}; default: return {c1:"#0f172a", c2:"#334155"}; }
+}
+
+function draw(){
+  if(!width || !height || !currentRxn) return;
+  const th = getThemeForRxn(currentRxn); const grad = ctx.createLinearGradient(0,0,width,height); grad.addColorStop(0, th.c1); grad.addColorStop(1, th.c2); ctx.fillStyle=grad; ctx.fillRect(0,0,width,height);
+  ctx.strokeStyle="rgba(255,255,255,0.08)"; ctx.beginPath(); for(let x=0;x<=COLS;x++){ ctx.moveTo(GRID_OFFSET_X+x*CELL, GRID_OFFSET_Y); ctx.lineTo(GRID_OFFSET_X+x*CELL, GRID_OFFSET_Y+ROWS*CELL); } for(let y=0;y<=ROWS;y++){ ctx.moveTo(GRID_OFFSET_X, GRID_OFFSET_Y+y*CELL); ctx.lineTo(GRID_OFFSET_X+COLS*CELL, GRID_OFFSET_Y+y*CELL); } ctx.stroke();
+  boardItems.forEach(i=>{ const cx=GRID_OFFSET_X+i.x*CELL, cy=GRID_OFFSET_Y+i.y*CELL; ctx.shadowBlur=20; ctx.shadowColor="rgba(250,204,21,0.9)"; ctx.fillStyle="rgba(250,204,21,0.3)"; ctx.strokeStyle="#facc15"; ctx.lineWidth=2; drawRoundRect(ctx, cx+2, cy+2, CELL-4, CELL-4, 8); ctx.fill(); ctx.stroke(); const txt = i.kind==='cond'?i.val:getComp(i.val).formula; ctx.font = "bold 16px sans-serif"; const w = ctx.measureText(txt).width+12; ctx.fillStyle = "rgba(15,23,42,0.95)"; drawRoundRect(ctx, cx+CELL/2-w/2, cy-32, w, 26, 8); ctx.fill(); ctx.fillStyle = "#e5e7eb"; ctx.textAlign="center"; ctx.fillText(txt, cx+CELL/2, cy-14); });
+  drawSnake(snake1, "#60a5fa", "#2563eb", dir1); if(modePlayers===2) drawSnake(snake2, "#f87171", "#ef4444", dir2);
+  floatTexts.forEach(f=>{ ctx.fillStyle = f.c; ctx.font="bold 16px sans-serif"; ctx.fillText(f.t, GRID_OFFSET_X+f.x*CELL+CELL/2, GRID_OFFSET_Y+f.y*CELL); f.y-=0.05; f.life--; }); floatTexts = floatTexts.filter(f=>f.life>0);
+}
+
+function drawSnake(s, cHead, cBody, dir){
+  s.forEach((p,i)=>{ const cx=GRID_OFFSET_X+p.x*CELL + CELL/2; const cy=GRID_OFFSET_Y+p.y*CELL + CELL/2; const radius = (CELL/2) - 2; ctx.fillStyle = i===0?cHead:cBody; if(i===0){ ctx.shadowBlur=25; ctx.shadowColor=cHead; } else ctx.shadowBlur=0; ctx.globalAlpha = i===0?1 : 0.9; ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI*2); ctx.fill(); if(i===0){ ctx.fillStyle="white"; ctx.beginPath(); ctx.arc(cx+dir.y*4-dir.x*4, cy+dir.x*4-dir.y*4, 3.5, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(cx+dir.y*4+dir.x*4, cy+dir.x*4+dir.y*4, 3.5, 0, Math.PI*2); ctx.fill(); ctx.fillStyle="black"; ctx.beginPath(); ctx.arc(cx+dir.y*4-dir.x*4+dir.x, cy+dir.x*4-dir.y*4+dir.y, 1.5, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(cx+dir.y*4+dir.x*4+dir.x, cy+dir.x*4+dir.y*4+dir.y, 1.5, 0, Math.PI*2); ctx.fill(); } ctx.globalAlpha=1; });
+  if(s.length>0 && currentRxn){ const h=s[0]; const rf=getComp(currentRxn.from); const txt=`${rf.name} ${rf.formula}`; const cx=GRID_OFFSET_X+h.x*CELL+CELL/2, cy=GRID_OFFSET_Y+h.y*CELL; let labelY = cy - 42; if (dir.y === -1) labelY = cy + 45; ctx.font="bold 14px sans-serif"; const w=ctx.measureText(txt).width+16; ctx.fillStyle="rgba(15,23,42,0.9)"; ctx.strokeStyle=cHead; ctx.lineWidth=1.5; drawRoundRect(ctx, cx-w/2, labelY, w, 28, 8); ctx.fill(); ctx.stroke(); ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.fillText(txt, cx, labelY+19); }
+}
+
+document.addEventListener('keydown', e=>{
+  const k=e.key.toLowerCase();
+  if (e.key === 'Shift') setTurbo(true); // [NEW] Shift for Turbo
+  if(document.activeElement.tagName === 'INPUT') { if(k==='enter') { e.preventDefault(); submitLogin(); } if(k==='escape') { document.activeElement.blur(); } return; }
+  if(isModalOpen) { if(k==='arrowup') { e.preventDefault(); moveModalFocus(-10); } else if (k==='arrowdown') { e.preventDefault(); moveModalFocus(10); } else if (k==='arrowleft') { e.preventDefault(); moveModalFocus(-1); } else if (k==='arrowright') { e.preventDefault(); moveModalFocus(1); } else if(k==='enter') { e.preventDefault(); triggerModalFocus(); } else if(k==='escape'||k==='backspace') { if(activeKeyboardInput && activeKeyboardInput.value.length > 0) deleteChar(); else closeAllModals(); } if(activeKeyboardInput && k.length===1 && /[a-z0-9]/i.test(k)) appendChar(e.key.toUpperCase()); return; }
+  if(k===' ') { e.preventDefault(); initGame(true); playSfx('click'); } if(k==='q') { togglePlayerMode(); }
+  if(!isModalOpen){ if(k==='m') { ui.bgmToggle.click(); } if(k==='n') { ui.sfxToggle.click(); } if(k==='t') { ui.timedToggle.click(); } if(k==='[' ) { ui.speedRange.stepDown(); ui.speedRange.dispatchEvent(new Event('input')); } if(k===']' ) { ui.speedRange.stepUp(); ui.speedRange.dispatchEvent(new Event('input')); } }
+  if(k==='w' && dir1.y!==1) pendingDir1={x:0,y:-1}; if(k==='s' && dir1.y!==-1) pendingDir1={x:0,y:1}; if(k==='a' && dir1.x!==1) pendingDir1={x:-1,y:0}; if(k==='d' && dir1.x!==-1) pendingDir1={x:1,y:0};
+  if(modePlayers===1) { if(e.key==='ArrowUp' && dir1.y!==1) pendingDir1={x:0,y:-1}; if(e.key==='ArrowDown' && dir1.y!==-1) pendingDir1={x:0,y:1}; if(e.key==='ArrowLeft' && dir1.x!==1) pendingDir1={x:-1,y:0}; if(e.key==='ArrowRight' && dir1.x!==-1) pendingDir1={x:1,y:0}; } 
+  else { if(e.key==='ArrowUp' && dir2.y!==1) pendingDir2={x:0,y:-1}; if(e.key==='ArrowDown' && dir2.y!==-1) pendingDir2={x:0,y:1}; if(e.key==='ArrowLeft' && dir2.x!==1) pendingDir2={x:-1,y:0}; if(e.key==='ArrowRight' && dir2.x!==-1) pendingDir2={x:1,y:0}; }
+  if(k==='l') ui.langBtn.click(); if(k==='escape' || k==='p') { isPaused=!isPaused; playSfx('click'); }
+});
+
+document.addEventListener('keyup', e=>{
+  if (e.key === 'Shift') setTurbo(false); // [NEW] Release Shift to stop Turbo
+});
+
+function pollGamepadsForGameplay(){ const gps = navigator.getGamepads(); let pads=[]; for(let g of gps) if(g) pads.push(g); if(pads.length===0) return; if(modePlayers===1) { handlePad(pads[0], 1); } else { if(pads[0]) handlePad(pads[0], 1); if(pads[1]) handlePad(pads[1], 2); } }
+function handlePad(gp, pid){
+  if(gp.buttons[8]?.pressed && !lastBtnStates[pid-1][8]) { togglePlayerMode(); lastBtnStates[pid-1][8]=true; return; } else if(!gp.buttons[8]?.pressed) lastBtnStates[pid-1][8]=false;
+  if(isPaused){ const pressed=(b)=>gp.buttons[b]?.pressed; if(pressed(9) && !lastBtnStates[pid-1][9]) { isPaused=false; playSfx('click'); } lastBtnStates[pid-1][9] = pressed(9); return; }
+  const dz=0.4; const ax0=gp.axes[0], ax1=gp.axes[1]; let dx=0, dy=0; if(gp.buttons[12]?.pressed || ax1 < -dz) dy=-1; else if(gp.buttons[13]?.pressed || ax1 > dz) dy=1; else if(gp.buttons[14]?.pressed || ax0 < -dz) dx=-1; else if(gp.buttons[15]?.pressed || ax0 > dz) dx=1;
+  if(dx!==0 || dy!==0){ if(pid===1){ if(!(dx===-dir1.x && dy===-dir1.y)) pendingDir1={x:dx,y:dy}; } else { if(!(dx===-dir2.x && dy===-dir2.y)) pendingDir2={x:dx,y:dy}; } }
+  const justPressed=(bIdx)=>{ const p=gp.buttons[bIdx]?.pressed; const last=lastBtnStates[pid-1][bIdx]; lastBtnStates[pid-1][bIdx]=p; return p && !last; };
+  if(justPressed(0)) initGame(true); if(justPressed(2)) ui.bgmToggle.click(); if(justPressed(3)) ui.sfxToggle.click(); if(justPressed(4)) { ui.speedRange.stepDown(); ui.speedRange.dispatchEvent(new Event('input')); } if(justPressed(5)) { ui.speedRange.stepUp(); ui.speedRange.dispatchEvent(new Event('input')); } if(justPressed(6)) ui.timedToggle.click(); if(justPressed(9)) { isPaused=!isPaused; playSfx('click'); } 
+  // [NEW] Gamepad Turbo Check (Button 7 - RT/R2 or Button 5 - RB/R1)
+  if (gp.buttons[7]) setTurbo(gp.buttons[7].pressed);
+}
+function vibrate(pid, type){ const gps=navigator.getGamepads(); let gpIdx=-1; if(modePlayers===1) gpIdx=0; else gpIdx=(pid-1); if(gps[gpIdx] && gps[gpIdx].vibrationActuator){ const s=type==='strong'?0.8:0.2; gps[gpIdx].vibrationActuator.playEffect("dual-rumble", {duration:200, strongMagnitude:s, weakMagnitude:s}).catch(()=>{}); } }
+
+function closeAllModals(){ document.getElementById('gameOverModal')?.remove(); document.getElementById('saveModal')?.remove(); document.getElementById('keyMapModal')?.remove(); document.getElementById('reportModal')?.remove(); document.getElementById('loginModal')?.remove(); isModalOpen=false; activeKeyboardInput=null; }
+function openModalMode(containerId) { isModalOpen = true; const container = document.getElementById(containerId); modalFocusables = Array.from(container.querySelectorAll('button, .vk-key, input.modal-input')); modalFocusIndex = 0; updateModalFocus(); }
+function pollGamepadsForModal(){ const gps=navigator.getGamepads(); let gp=null; for(let g of gps) if(g){gp=g;break;} if(!gp) return; const now=Date.now(); if(now-lastPadNavTime<150)return; let moved=false; 
+if(gp.buttons[13]?.pressed || gp.axes[1]>0.5) { 
+    // DOWN Pressed
+    if(modalFocusIndex < 2) { 
+        if(modalFocusIndex === 0) modalFocusIndex = 1; // Name -> ID
+        else if(modalFocusIndex === 1) modalFocusIndex = 2; // ID -> Key '1'
+    } else {
+        modalFocusIndex+=10; 
+    }
+    moved=true; 
+} else if(gp.buttons[12]?.pressed || gp.axes[1]<-0.5) { 
+    // UP Pressed
+    if(modalFocusIndex < 2) {
+        if(modalFocusIndex === 1) modalFocusIndex = 0; // ID -> Name
+    } else if(modalFocusIndex < 12) {
+        modalFocusIndex = 1; // First row of keys -> ID Input
+    } else {
+        modalFocusIndex-=10; 
+    }
+    moved=true; 
+} else if(gp.buttons[15]?.pressed || gp.axes[0]>0.5) { modalFocusIndex++; moved=true; } else if(gp.buttons[14]?.pressed || gp.axes[0]<-0.5) { modalFocusIndex--; moved=true; } 
+if(moved){ if(modalFocusIndex >= modalFocusables.length) modalFocusIndex = modalFocusables.length - 1; if(modalFocusIndex < 0) modalFocusIndex = 0; updateModalFocus(); lastPadNavTime=now; playSfx('click'); } if(gp.buttons[0]?.pressed && !lastBtnStates[0][0]){ triggerModalFocus(); lastBtnStates[0][0]=true; } else if(!gp.buttons[0]?.pressed) lastBtnStates[0][0]=false; if(gp.buttons[1]?.pressed && !lastBtnStates[0][1]){ closeAllModals(); lastBtnStates[0][1]=true; } else if(!gp.buttons[1]?.pressed) lastBtnStates[0][1]=false; }
+function pollGamepadsForRestart(){ const gps = navigator.getGamepads(); for(let i=0; i<gps.length; i++){ const gp = gps[i]; if(!gp) continue; if(gp.buttons[0]?.pressed || gp.buttons[9]?.pressed){ if(!lastBtnStates[i]) lastBtnStates[i]=[]; if(!lastBtnStates[i][0] && !lastBtnStates[i][9]){ initGame(true); } lastBtnStates[i][0] = gp.buttons[0]?.pressed; lastBtnStates[i][9] = gp.buttons[9]?.pressed; } else { if(lastBtnStates[i]) { lastBtnStates[i][0] = false; lastBtnStates[i][9] = false; } } } }
+
+function updateModalFocus(){ modalFocusables.forEach((el,i)=>{ if(i===modalFocusIndex) el.classList.add('ui-focused'); else el.classList.remove('ui-focused'); }); }
+function triggerModalFocus(){ if(modalFocusables[modalFocusIndex]) { const el = modalFocusables[modalFocusIndex]; if(el.tagName === 'INPUT'){ el.focus(); activeKeyboardInput = el; } else { el.click(); } setTimeout(()=>updateModalFocus(), 100); } }
+function moveModalFocus(delta){ let next = modalFocusIndex + delta; if(next < 0) next = modalFocusables.length - 1; if(next >= modalFocusables.length) next = 0; modalFocusIndex = next; updateModalFocus(); playSfx('click'); }
+
+function endGame(reason){ if(gameOver) return; gameOver = true; toggleBGM(false); if(gameInterval) clearInterval(gameInterval); gameStats.endTime = Date.now(); let w = i18n[lang].draw; const t = i18n[lang]; let icon = "🤝"; if(modePlayers===2){ if (snake1.length === 0) { w = "P2"; icon = "🏆"; playSfx('win'); } else if (snake2.length === 0) { w = "P1"; icon = "🏆"; playSfx('win'); } else if (scoreP1 > scoreP2) { w = "P1"; icon = "🏆"; playSfx('win'); } else if (scoreP2 > scoreP1) { w = "P2"; icon = "🏆"; playSfx('win'); } } else { w = "Player"; icon = "😭"; } showGameOverModal(w, reason, icon); }
+function showGameOverModal(winner, reason, icon){ closeAllModals(); const div = document.createElement('div'); div.id = "gameOverModal"; div.className = "modal-mask"; const t = i18n[lang]; const wText = (modePlayers===1) ? t.gameOver : (winner===t.draw?t.draw:(winner+t.wins)); div.innerHTML = `<div class="modal-box"><div class="modal-icon-area">${icon}</div><div class="modal-h">${wText}</div><div class="modal-sub">${reason}</div><div style="margin-bottom:30px; font-size:24px; color:#facc15; font-weight:bold;">${modePlayers===1 ? `${t.score}: ${scoreP1}` : `P1: ${scoreP1} | P2: ${scoreP2}`}</div><div class="btn-group"><button class="btn-action" onclick="initGame(true)">${t.playAgain}</button><button class="btn-sub btn-report" onclick="checkLoginBeforeReport()">${t.report}</button><button class="btn-sub btn-clear" onclick="closeAllModals()">${t.close}</button></div></div>`; document.body.appendChild(div); openModalMode("gameOverModal"); }
+
+function checkLoginBeforeReport() { if(gameStats.playerInfo) showReportModal(); else showLoginModal(); }
+function showLoginModal() { 
+    closeAllModals(); 
+    isCaps = true; 
+    isChineseInput = false;
+    zhPageIndex = 0; // Reset page
+    const div = document.createElement('div'); div.id = "loginModal"; div.className = "modal-mask"; const t = i18n[lang]; 
+    div.innerHTML = `<div class="modal-box"><div class="modal-h">${t.loginTitle}</div><span class="input-label">${t.labelName}</span><input id="nameInput" class="modal-input" onfocus="activeKeyboardInput=this"><span class="input-label">${t.labelID}</span><input id="idInput" class="modal-input" onfocus="activeKeyboardInput=this"><div id="virtualKeyboard"></div><button class="btn-action" onclick="submitLogin()">${t.nextBtn}</button></div>`; 
+    document.body.appendChild(div); 
+    activeKeyboardInput = document.getElementById('nameInput'); 
+    renderKeyboard();
+    openModalMode("loginModal"); 
+}
+
+function renderKeyboard() {
+    const container = document.getElementById('virtualKeyboard');
+    if(!container) return;
+    
+    let html = '';
+    
+    if(!isChineseInput) {
+        // ENGLISH LAYOUT
+        VK_EN.forEach(row=>{ 
+            html+='<div class="vk-row">'; 
+            row.forEach(k=>{ 
+                if(k==='DEL') html+=`<div class="vk-key vk-wide" onclick="deleteChar()">DEL</div>`; 
+                else if(k==='SPACE') html+=`<div class="vk-key vk-wide" onclick="appendChar(' ')">SPACE</div>`;
+                else if(k==='CAPS') html+=`<div class="vk-key vk-wide" onclick="toggleCaps()">CAPS</div>`;
+                else if(k==='🌐') html+=`<div class="vk-key" onclick="toggleLangInput()" style="color:#facc15">中/En</div>`;
+                else if(k==='DONE') html+=`<div class="vk-key vk-wide" onclick="submitLogin()">OK</div>`; 
+                else html+=`<div class="vk-key vk-char" onclick="appendChar('${k}')">${k}</div>`; 
+            }); 
+            html+='</div>'; 
+        });
+    } else {
+        // CHINESE LAYOUT (PAGED)
+        // Row 1: Numbers
+        html+='<div class="vk-row">';
+        for(let i=1; i<=9; i++) html+=`<div class="vk-key" onclick="appendChar('${i}')">${i}</div>`;
+        html+=`<div class="vk-key" onclick="appendChar('0')">0</div>`;
+        html+='</div>';
+        
+        // Rows 2,3,4: Characters
+        const pageSize = 30;
+        const totalPages = Math.ceil(ZH_CHARS.length / pageSize);
+        const start = zhPageIndex * pageSize;
+        const chars = ZH_CHARS.slice(start, start + pageSize);
+        
+        // Fill 3 rows of 10
+        let charIdx = 0;
+        for(let r=0; r<3; r++) {
+            html+='<div class="vk-row">';
+            for(let c=0; c<10; c++) {
+                if(charIdx < chars.length) {
+                    html+=`<div class="vk-key" onclick="appendChar('${chars[charIdx]}')">${chars[charIdx]}</div>`;
+                    charIdx++;
+                } else {
+                    html+=`<div class="vk-key" style="opacity:0;pointer-events:none"></div>`;
+                }
+            }
+            html+='</div>';
+        }
+        
+        // Row 5: Controls
+        html+='<div class="vk-row">';
+        html+=`<div class="vk-key" onclick="toggleLangInput()" style="color:#facc15">中/En</div>`;
+        html+=`<div class="vk-key" onclick="prevPage()">◀</div>`;
+        html+=`<div class="vk-key" onclick="nextPage()">▶</div>`;
+        html+=`<div class="vk-key vk-wide" onclick="appendChar(' ')">SPACE</div>`;
+        html+=`<div class="vk-key" onclick="deleteChar()">DEL</div>`; 
+        html+=`<div class="vk-key vk-wide" onclick="submitLogin()">OK</div>`; 
+        html+='</div>';
+    }
+
+    container.innerHTML = html;
+    
+    // Refresh focusables for gamepad
+    const modalBox = document.querySelector('.modal-box');
+    if(modalBox) {
+        modalFocusables = Array.from(modalBox.querySelectorAll('button, .vk-key, input.modal-input'));
+        // Clamp index if it went out of bounds due to layout change
+        if(modalFocusIndex >= modalFocusables.length) modalFocusIndex = modalFocusables.length - 1;
+        updateModalFocus();
+    }
+}
+
+function prevPage() {
+    if(zhPageIndex > 0) {
+        zhPageIndex--;
+        renderKeyboard();
+        playSfx('click');
+    }
+}
+
+function nextPage() {
+    const pageSize = 30;
+    const totalPages = Math.ceil(ZH_CHARS.length / pageSize);
+    if(zhPageIndex < totalPages - 1) {
+        zhPageIndex++;
+        renderKeyboard();
+        playSfx('click');
+    }
+}
+
+function toggleLangInput() {
+    isChineseInput = !isChineseInput;
+    renderKeyboard();
+    playSfx('click');
+}
+
+function submitLogin() { const name = document.getElementById('nameInput').value; const id = document.getElementById('idInput').value; if(name && id) { gameStats.playerInfo = { name, id }; showReportModal(); } else { document.getElementById('nameInput').style.borderColor = "#ef4444"; } }
+
+function generateDiagnosis(stats) {
+    const t = i18n[lang]; let msgs = [];
+    const acc = stats.totalQs > 0 ? (stats.correctCount / stats.totalQs) : 0;
+    if(acc > 0.9) msgs.push(lang==='zh'?"🌟 **知识掌握极佳**！":"🌟 **Excellent Mastery!**"); else if(acc > 0.7) msgs.push(lang==='zh'?"👍 **基础扎实**，但仍有提升空间。":"👍 **Solid Foundation**, keep improving."); else msgs.push(lang==='zh'?"⚠️ **基础薄弱**，建议回顾教材。":"⚠️ **Needs Review**, check textbook.");
+    let worstType = null, minRate = 1.1; for(let type in stats.byType) { const d = stats.byType[type]; const r = d.total>0 ? d.correct/d.total : 1; if(r < minRate && d.total > 1) { minRate = r; worstType = type; } }
+    if(worstType) { const typeName = t.types[worstType] || worstType; msgs.push(lang==='zh' ? `🔍 你似乎对 **${typeName}** 不太熟悉。` : `🔍 You struggle with **${typeName}**.`); }
+    const stability = stats.wrongCount > 0 ? (stats.maxCombo / stats.wrongCount) : stats.maxCombo; if(stability < 2 && stats.totalQs > 5) msgs.push(lang==='zh'?"📉 **心态不稳**，容易连续出错。":"📉 **Unstable**, prone to consecutive errors.");
+    return msgs.join("<br>");
+}
+
+function showReportModal() {
+    closeAllModals(); const div = document.createElement('div'); div.id = "reportModal"; div.className = "modal-mask"; const t = i18n[lang]; const p = gameStats.playerInfo;
+    const headerHtml = `<div class="report-header"><span>👤 ${p.name}</span><span>🆔 ${p.id}</span></div>`;
+    const duration = Math.floor((gameStats.endTime - gameStats.startTime)/1000); const acc = gameStats.totalQs > 0 ? Math.round((gameStats.correctCount / gameStats.totalQs)*100) : 0; const avgSpd = gameStats.correctCount > 0 ? (duration / gameStats.correctCount).toFixed(1) + 's' : '-';
+    let grade = 'C'; if(acc >= 90 && gameStats.correctCount > 10) grade = 'S'; else if(acc >= 80) grade = 'A'; else if(acc >= 60) grade = 'B'; else if(acc < 40) grade = 'D';
+    let weakCh = "-"; let minRate = 101; for(let ch in gameStats.byChapter){ const d = gameStats.byChapter[ch]; const r = d.total > 0 ? d.correct/d.total : 1; if(r < minRate) { minRate = r; weakCh = i18n[lang].chapters[ch]; } }
+    const diagnosisText = generateDiagnosis(gameStats);
+    let chartHtml = ""; for(let ch in gameStats.byChapter){ const d = gameStats.byChapter[ch]; const pct = d.total > 0 ? Math.round((d.correct/d.total)*100) : 0; const name = i18n[lang].chapters[ch].split(' ')[1] || ch; chartHtml += `<div class="chart-bar"><div class="chart-label">${name}</div><div class="chart-track"><div class="chart-fill" style="width:${pct}%; background:${pct<60?'#ef4444':(pct>=90?'#facc15':'#3b82f6')}"></div></div><div class="chart-val">${pct}%</div></div>`; }
+    let mistakesHtml = gameStats.mistakes.map(m => `<div class="wrong-row"><span style="color:#ef4444">❌ ${m.wrong}</span><span style="color:#94a3b8">→</span><span style="color:#22c55e">✅ ${m.right}</span><div style="font-size:10px;color:#64748b;width:100%;margin-top:2px;">${m.q}</div></div>`).join('') || `<div style="text-align:center;padding:10px;">🎉 Perfect!</div>`;
+    div.innerHTML = `<div class="modal-box" style="width:700px;"><div class="modal-h">${t.reportTitle}</div>${headerHtml}<div class="diagnosis-box">${diagnosisText}</div><div class="report-grid"><div class="report-card"><div class="report-grade">${grade}</div><div class="report-label">${t.statsTotal}</div><div class="report-val">${gameStats.totalQs}</div><div style="margin-top:10px;"></div><div class="report-label">${t.statsAcc}</div><div class="report-val" style="color:${acc>=80?'#4ade80':'#f87171'}">${acc}%</div></div><div class="report-card"><div class="report-label">${t.statsSpeed}</div><div class="report-val">${avgSpd}</div><div style="margin-top:10px;"></div><div class="report-label">${t.weakChapter}</div><div class="report-val" style="font-size:14px; color:#fcd34d; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${weakCh}</div></div></div><div style="text-align:left; margin-bottom:15px; font-weight:bold; color:#cbd5e1;">📊 Mastery</div><div style="background:rgba(15,23,42,0.5); padding:15px; border-radius:12px; margin-bottom:20px;">${chartHtml}</div><div style="text-align:left; margin-bottom:5px; font-weight:bold; color:#cbd5e1;">📝 Review</div><div class="wrong-list">${mistakesHtml}</div><div class="btn-group" style="margin-top:20px;"><button class="btn-action btn-copy" onclick="copyReportToClipboard()">${t.copyBtn}</button><button class="btn-sub btn-clear" onclick="closeAllModals()">${t.close}</button></div></div>`; document.body.appendChild(div); openModalMode("reportModal");
+}
+
+function copyReportToClipboard() {
+    const t = i18n[lang]; const p = gameStats.playerInfo; const now = new Date().toLocaleString();
+    const acc = gameStats.totalQs > 0 ? Math.round((gameStats.correctCount / gameStats.totalQs)*100) : 0;
+    let text = `🧪 CJ ChemSnake Report\n-----------------------------\n`;
+    text += `👤 Name: ${p.name}\n🆔 ID: ${p.id}\n📅 Date: ${now}\n`;
+    text += `💯 Score: ${Math.max(scoreP1, scoreP2)}\n🎯 Accuracy: ${acc}% (${gameStats.correctCount}/${gameStats.totalQs})\n`;
+    text += `-----------------------------\n[Diagnosis]\n${generateDiagnosis(gameStats).replace(/<br>/g, '\n')}\n`;
+    text += `-----------------------------\n[Mistakes]\n`;
+    if(gameStats.mistakes.length === 0) text += "None! Perfect Score! 🎉\n";
+    else gameStats.mistakes.forEach((m, i) => text += `${i+1}. ${m.q}\n   [X]: ${m.wrong} -> [O]: ${m.right}\n`);
+    text += `-----------------------------\n© CJ Studio 2025`;
+    navigator.clipboard.writeText(text).then(() => { const toast = document.getElementById('toast'); toast.textContent = t.copySuccess; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); });
+}
+function toggleCaps(){ 
+    isCaps = !isCaps; 
+    const chars = document.querySelectorAll('.vk-char');
+    chars.forEach(el => {
+        el.textContent = isCaps ? el.textContent.toUpperCase() : el.textContent.toLowerCase();
+        el.onclick = () => appendChar(el.textContent);
+    });
+}
+function appendChar(c){ if(activeKeyboardInput) activeKeyboardInput.value+=c; }
+function deleteChar(){ if(activeKeyboardInput) activeKeyboardInput.value=activeKeyboardInput.value.slice(0,-1); }
+function showSaveModal(){ if(gameStats.playerInfo) { activeKeyboardInput = { value: gameStats.playerInfo.name }; } closeAllModals(); const div = document.createElement('div'); div.id = "saveModal"; div.className = "modal-mask"; const t = i18n[lang]; 
+div.innerHTML=`<div class="modal-box"><div class="modal-h">${t.saveTitle}</div><input id="saveInput" disabled value="${gameStats.playerInfo?gameStats.playerInfo.name:'Player'}" class="modal-input"><div id="virtualKeyboard"></div><button class="btn-sub" onclick="closeAllModals()">${t.close}</button></div>`; 
+document.body.appendChild(div); 
+activeKeyboardInput = document.getElementById('saveInput'); 
+renderKeyboard();
+openModalMode("saveModal"); 
+}
+document.getElementById('keyMapBtn').onclick = openKeyMapUI;
+function openKeyMapUI(){ closeAllModals(); const div = document.createElement('div'); div.id = "keyMapModal"; div.className = "modal-mask"; const t = i18n[lang]; div.innerHTML = `<div class="modal-box"><div class="modal-h">🎮 ${t.keyMapBtn}</div><div style="font-size:12px;text-align:left;max-height:200px;overflow-y:auto;margin-bottom:10px;"><div id="keyHintBar" style="position:static; transform:none; margin-bottom:15px; box-shadow:none; background:none; flex-direction:column; align-items:center;"><div class="kh-row"><div class="kh-group" style="border:none;"><div class="kh-item"><span class="kh-key">WASD</span><span class="kh-pad">L-Stick</span><span class="kh-desc">${t.hintMove}</span></div><div class="kh-item"><span class="kh-key">Space</span><span class="kh-pad">A</span><span class="kh-desc">${t.hintStart}</span></div></div></div></div></div><button class="btn-action" onclick="closeAllModals()">${t.close}</button></div>`; document.body.appendChild(div); openModalMode("keyMapModal"); }
+
+// [NEW] Import Logic
+document.getElementById('importBtn').onclick = () => document.getElementById('fileInput').click();
+document.getElementById('fileInput').onchange = function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (data.compounds) compoundsCore = data.compounds;
+            if (data.reactions) reactionsCore = data.reactions;
+            alert(i18n[lang].importSuccess || "Import Successful!");
+            initGame(true); 
+        } catch (err) {
+            alert(i18n[lang].importFail || "Import Failed! Check JSON format.");
+            console.error(err);
+        }
+    };
+    reader.readAsText(file);
+};
+
+// [NEW] Speed Boost Logic
+document.getElementById('speedRange').oninput = (e)=>{ playSfx('click'); updateGameSpeed(); }; // Update handler
+
+function updateGameSpeed() {
+    if (gameInterval) clearInterval(gameInterval);
+    // If turbo is on, set speed to 80ms, otherwise calculate from slider
+    let currentSpeed = isTurbo ? 80 : (320 - parseInt(ui.speedRange.value) * 25);
+    speed = currentSpeed;
+    if (!isPaused && !gameOver && isGameReady) {
+        gameInterval = setInterval(gameLoop, speed);
+    }
+}
+
+function setTurbo(active) {
+    if (isTurbo === active) return;
+    isTurbo = active;
+    const btn = document.getElementById('turboBtn');
+    if(btn) { if(active) btn.classList.add('active'); else btn.classList.remove('active'); }
+    updateGameSpeed();
+}
+
+function saveScore(){ const name=activeKeyboardInput.value; const sc = modePlayers===1 ? scoreP1 : Math.max(scoreP1, scoreP2); const list=loadRank(); list.push({name, score:sc}); saveRank(list); closeAllModals(); renderRank(); }
+function loadRank(){ return JSON.parse(localStorage.getItem(`cjSnake_${modePlayers}P_Rank`)||'[]'); }
+function saveRank(l){ l.sort((a,b)=>b.score-a.score); localStorage.setItem(`cjSnake_${modePlayers}P_Rank`,JSON.stringify(l.slice(0,10))); }
+function renderRank(){ const list=loadRank(); ui.rankList.innerHTML = list.map((item,i)=>`<div class="log-item"><span>${i+1}. ${item.name}</span><span style="color:#facc15">${item.score}</span></div>`).join(''); }
+document.getElementById('clearRank').onclick = ()=>{ localStorage.removeItem(`cjSnake_${modePlayers}P_Rank`); renderRank(); };
+document.getElementById('clearWrong').onclick = ()=>{ ui.wrongLog.innerHTML=""; };
+ui.timedToggle.onchange = ()=>{ playSfx('click'); checkTimerState(); };
+ui.durationSelect.onchange = ()=>{ playSfx('click'); checkTimerState(); };
+ui.bgmToggle.onchange = ()=>{ isBgmOn=ui.bgmToggle.checked; toggleBGM(!gameOver); };
+ui.sfxToggle.onchange = ()=>{ isSfxOn=ui.sfxToggle.checked; playSfx('click'); };
+ui.chapterSelect.onchange = ()=>{ playSfx('click'); usedRxnIndices = []; nextQuestion(); };
+ui.langBtn.addEventListener('click', ()=>{ playSfx('click'); lang=lang==='zh'?'en':'zh'; updateUILanguage(); nextQuestion(); });
+document.getElementById('newGameBtn').addEventListener('click', ()=>{ playSfx('click'); initGame(true); });
+
+function formatTime(s){ const m=Math.floor(s/60); const sec=s%60; return `${m}:${sec.toString().padStart(2,'0')}`; }
+function tickTimer(){ if(gameOver||isPaused||isModalOpen) return; timeLeft--; ui.timeDisplay.textContent=formatTime(timeLeft); if(timeLeft<=0) endGame(i18n[lang].reasonTime); }
+function checkTimerState() { timedMode = ui.timedToggle.checked; ui.durationSelect.style.opacity = timedMode ? "1" : "0.5"; ui.timeDisplay.classList.toggle('active', timedMode); if(timedMode) { if(timeLeft<=0) timeLeft=parseInt(ui.durationSelect.value); ui.timeDisplay.textContent=formatTime(timeLeft); } else { ui.timeDisplay.textContent="--:--"; if(timerId) clearInterval(timerId); } }
+
+/* START */
+window.onload=()=>{ updateModeUI(); updateUILanguage(); renderRank(); setTimeout(() => { initGame(true); isPaused = false; }, 100); ui.bgmToggle.checked=false; ui.sfxToggle.checked=false; isBgmOn=false; isSfxOn=false; toggleBGM(false); };
+</script>
+</body>
+</html>
+</textarea>
+<!-- 10. 最终完美版：设备检测增强 + 完美自适应布局 + 邮件 -->
+    <script>
+        (function() {
+            // === ⬇️ 邮箱设置 ⬇️ ===
+            var myEmail = "yangxb@synu.edu.cn"; 
+            // ====================
+
+            var mCode = document.getElementById('code-mobile').value;
+            var pCode = document.getElementById('code-pc').value;
+            
+            // 1. 设备检测 (增强版)
+            var ua = navigator.userAgent;
+            // A. 常见手机/平板关键词
+            var basicMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+            // B. iPad Pro (伪装成电脑的)
+            var isIpad = (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            // C. 宽屏平板/触屏本 (核心修正：放宽到 1366px 且支持触屏，或者 1024px 以下任意设备)
+            var isTablet = (window.innerWidth <= 1024) || (navigator.maxTouchPoints > 0 && window.innerWidth <= 1366);
+            
+            var isMobile = basicMobile || isIpad || isTablet;
+
+            // 2. 选取代码
+            var finalCode = "";
+            var isPCMode = false;
+            if (isMobile) {
+                finalCode = mCode.length > 100 ? mCode : pCode;
+            } else {
+                finalCode = pCode.length > 100 ? pCode : mCode;
+                isPCMode = (pCode.length > 100);
+            }
+
+            // 3. 执行修改
+            if (finalCode.length > 100) {
+                
+                // --- A. 注入邮件功能 ---
+                var mailLogic = "";
+                if (isPCMode) {
+                    mailLogic = `window.location.href = "mailto:${myEmail}?subject=ChemSnake_Report&body=" + encodeURIComponent(text);`;
+                    finalCode = finalCode.replace("navigator.clipboard.writeText(text)", mailLogic + " navigator.clipboard.writeText(text)");
+                } else {
+                    mailLogic = `window.location.href = "mailto:${myEmail}?subject=ChemSnake_Report&body=" + encodeURIComponent(txt);`;
+                    finalCode = finalCode.replace("navigator.clipboard.writeText(txt)", mailLogic + " navigator.clipboard.writeText(txt)");
+                    
+                    // --- B. 【移动版布局 V9 (保留完美版)】 ---
+                    
+                    // 1. 【视野最大化】(Top:60, Bot:160)
+                    finalCode = finalCode.replace("const topM = 110; const botM = 130;", "const topM = 60; const botM = 160;");
+
+                    // 2. 【缩小气泡字体】
+                    finalCode = finalCode.replace('ctx.font = "bold 13px sans-serif";', 'ctx.font = "bold 10px sans-serif";');
+                    
+                    // 3. 【CSS补丁：自适应箭头 + 垂直对齐】
+                    var cssPatch = `
+                    <style>
+                        /* 1. 顶部容器：Flex布局，垂直居中 */
+                        .eq-container { 
+                            display: flex !important;
+                            flex-direction: row !important;
+                            align-items: center !important;
+                            justify-content: center !important;
+                            gap: 4px !important;
+                            padding: 2px 5px !important;
+                            width: 100% !important;
+                            box-sizing: border-box !important;
+                            transform: scale(0.95);
+                        }
+
+                        /* 2. 左右部分：平分空间，内部垂直堆叠居中 */
+                        .eq-left, .eq-right {
+                            flex: 1 !important;
+                            display: flex !important;
+                            flex-direction: column !important;
+                            justify-content: center !important;
+                            align-items: center !important;
+                            text-align: center !important;
+                            min-width: 0 !important;
+                        }
+
+                        /* 3. 中间部分：宽度自适应 */
+                        .eq-mid {
+                            flex: 0 0 auto !important;
+                            width: auto !important;
+                            min-width: 30px !important;
+                            display: flex !important;
+                            flex-direction: column !important;
+                            justify-content: center !important;
+                            align-items: center !important;
+                            margin: 0 2px !important;
+                        }
+
+                        /* 4. 反应条件文字 */
+                        .eq-cond {
+                             position: static !important;
+                             transform: none !important;
+                             font-size: 9px !important;
+                             white-space: nowrap !important;
+                             line-height: 1.2 !important;
+                             margin-bottom: -2px !important;
+                        }
+
+                        /* 5. 箭头线 */
+                        .eq-arrow-line {
+                            position: relative !important;
+                            width: 100% !important;
+                            height: 2px !important;
+                            background: #cbd5e1 !important;
+                        }
+                        .eq-arrow-line::after { right: 0 !important; }
+
+                        /* 6. 化学式 */
+                        .chem-formula { 
+                            white-space: nowrap !important;
+                            font-size: clamp(10px, 3.5vw, 16px) !important; 
+                            line-height: 1.1 !important;
+                        }
+                        
+                        .chem-name { font-size: 9px !important; opacity: 0.8; margin-top: 1px !important; }
+                        .top-bar { padding: 0 !important; }
+                    </style>
+                    `;
+                    finalCode = finalCode.replace('</head>', cssPatch + '</head>');
+                }
+
+                document.open();
+                document.write(finalCode);
+                document.close();
+            } else {
+                document.querySelector('.loader').innerHTML = "❌ 错误：代码加载失败。";
+                document.querySelector('.loader').style.color = "#ef4444";
+            }
+        })();
+    </script>
+    </body>
+</html>
