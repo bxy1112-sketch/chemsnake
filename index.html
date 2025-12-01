@@ -3,16 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <title>CJ ChemSnake 融合版</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- ✅ [新增] PWA App 适配配置 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <!-- ✅ [修改] 引用本地图标 icon.png -->
+    <link rel="apple-touch-icon" href="icon.png">
+
     <style>
         body { background-color: #0f172a; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; overflow: hidden; }
-        .loader { font-size: 20px; opacity: 0.7; }
+        .loader { font-size: 20px; opacity: 0.7; text-align: center; }
         textarea { display: none; }
     </style>
 </head>
 <body>
-    <div class="loader">正在检测设备并加载对应版本...<br>Detecting Device...</div>
+    <!-- ✅ [新增] 离线缓存注册 -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW fail', err));
+        });
+      }
+    </script>
 
+    <div class="loader">
+        <div>正在检测设备并加载对应版本...</div>
+        <div style="font-size:12px; margin-top:5px; opacity:0.5">Detecting Device...</div>
+    </div>
     <textarea id="code-mobile">
 <!DOCTYPE html>
 <html lang="zh-CN">
