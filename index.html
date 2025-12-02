@@ -726,8 +726,8 @@ document.addEventListener('keydown', e=>{
   #modeSwitchBtn:hover { background:rgba(99,102,241,0.5); color:#fff; transform:scale(1.05); }
 
   #scoreContainer { position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); z-index:1; pointer-events:none; white-space:nowrap; display:flex; }
-  .score-1p, .score-2p { display:flex; align-items:center; background:linear-gradient(180deg, rgba(30,41,59,0.7), rgba(15,23,42,0.7)); padding:4px 45px; border-radius:16px; border:1px solid #334155; box-shadow:inset 0 0 25px rgba(0,0,0,0.5); }
-  .score-1p { gap:35px; } .score-2p { gap:45px; }
+  .score-1p, .score-2p { display:flex; align-items:center; background:linear-gradient(180deg, rgba(30,41,59,0.7), rgba(15,23,42,0.7)); padding:4px 15px; border-radius:16px; border:1px solid #334155; box-shadow:inset 0 0 25px rgba(0,0,0,0.5); }
+  .score-1p { gap:15px; } .score-2p { gap:15px; }
   .p-unit { display:flex; flex-direction:column; align-items:center; line-height:1; min-width:80px; }
   .p1-c { color:#60a5fa; text-shadow:0 0 15px rgba(59,130,246,0.8); }
   .p2-c { color:#f87171; text-shadow:0 0 15px rgba(248,113,113,0.8); }
@@ -1724,7 +1724,95 @@ window.onload=()=>{ updateModeUI(); updateUILanguage(); renderRank(); setTimeout
                 finalCode = finalCode.replace('ctx.font = "bold 13px sans-serif";', 'ctx.font = "bold 10px sans-serif";');
                 
                 // 3. 样式补丁 (修复方程式对齐)
-                var cssPatch = `<style>.eq-container{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:4px!important;padding:2px 5px!important;width:100%!important;box-sizing:border-box!important;transform:scale(0.95);background:rgba(0,0,0,0.4);border-radius:10px;border:1px solid rgba(255,255,255,0.05);margin:0 5px 5px 5px}.eq-left,.eq-right{flex:1!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;text-align:center!important;min-width:0!important}.eq-mid{flex:0 0 auto!important;width:auto!important;min-width:30px!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;margin:0 2px!important}.eq-cond{position:static!important;transform:none!important;font-size:9px!important;color:#facc15;white-space:nowrap!important;line-height:1.2!important;margin-bottom:-2px!important;text-shadow:0 0 3px #000}.eq-arrow-line{position:relative!important;width:100%!important;height:2px!important;background:#cbd5e1!important;border-radius:2px}.eq-arrow-line::after{content:"";position:absolute;right:-1px;top:-3px;border-left:5px solid #cbd5e1;border-top:4px solid transparent;border-bottom:4px solid transparent}.chem-formula{white-space:nowrap!important;font-size:clamp(10px,3.5vw,16px)!important;line-height:1.1!important;font-weight:800}.top-bar{padding:0!important}</style>`;
+              // 3. 样式补丁 (修复方程式对齐 + 美化)
+                var cssPatch = `
+                <style>
+                    /* 1. 容器：深色玻璃质感，增加内边距，防拥挤 */
+                    .eq-container { 
+                        display: flex !important; 
+                        flex-direction: row !important; 
+                        align-items: center !important; 
+                        justify-content: space-between !important; 
+                        gap: 4px !important; 
+                        padding: 8px 6px !important; 
+                        width: 100% !important; 
+                        box-sizing: border-box !important;
+                        background: rgba(15, 23, 42, 0.9) !important; 
+                        border-radius: 12px; 
+                        border: 1px solid rgba(255,255,255,0.15); 
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+                        margin: 0 5px 5px 5px;
+                    }
+
+                    /* 2. 左右化学式：弹性布局，垂直居中 */
+                    .eq-left, .eq-right { 
+                        flex: 1 !important; 
+                        display: flex !important; 
+                        flex-direction: column !important; 
+                        justify-content: center !important; 
+                        min-width: 0 !important; 
+                    }
+                    /* 左边靠右对齐，右边靠左对齐 (紧贴箭头) */
+                    .eq-left { align-items: flex-end !important; text-align: right !important; padding-right: 4px !important; }
+                    .eq-right { align-items: flex-start !important; text-align: left !important; padding-left: 4px !important; }
+
+                    /* 3. 中间箭头区：固定宽度 */
+                    .eq-mid { 
+                        flex: 0 0 44px !important; 
+                        width: 44px !important; 
+                        display: flex !important; 
+                        flex-direction: column !important; 
+                        align-items: center !important; 
+                        justify-content: center !important; 
+                        position: relative !important;
+                        margin: 0 !important;
+                    }
+
+                    /* 4. 反应条件：悬浮在箭头上方，金色高亮 */
+                    .eq-cond { 
+                        position: absolute !important; 
+                        top: -14px !important; 
+                        left: 50% !important;
+                        transform: translateX(-50%) !important;
+                        font-size: 10px !important; 
+                        color: #facc15 !important; 
+                        white-space: nowrap !important; 
+                        text-shadow: 0 1px 3px rgba(0,0,0,0.9); 
+                        font-weight: 800 !important;
+                        z-index: 5;
+                    }
+
+                    /* 5. 箭头线 */
+                    .eq-arrow-line { 
+                        position: relative !important; 
+                        width: 100% !important; 
+                        height: 2px !important; 
+                        background: #cbd5e1 !important; 
+                        border-radius: 2px;
+                        margin-top: 3px !important;
+                    }
+                    .eq-arrow-line::after { 
+                        content: "" !important; 
+                        position: absolute !important; 
+                        right: 0 !important; 
+                        top: -3px !important; 
+                        border-left: 5px solid #cbd5e1 !important; 
+                        border-top: 4px solid transparent !important; 
+                        border-bottom: 4px solid transparent !important; 
+                    }
+
+                    /* 6. 化学式文字：更大更清晰 */
+                    .chem-formula { 
+                        white-space: nowrap !important; 
+                        font-size: clamp(14px, 4.5vw, 20px) !important; 
+                        line-height: 1.2 !important; 
+                        font-weight: 800 !important;
+                        font-family: sans-serif !important;
+                    }
+                    
+                    .chem-name { font-size: 9px !important; opacity: 0.7 !important; margin-top: 2px !important; color: #94a3b8 !important; }
+                    .top-bar { padding: 0 !important; border: none !important; background: transparent !important; }
+                </style>`;
                 finalCode = finalCode.replace('</head>', cssPatch + '</head>');
                 
                 // 4. 邮件功能 (移动端变量名 txt)
