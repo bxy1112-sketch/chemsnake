@@ -726,8 +726,8 @@ document.addEventListener('keydown', e=>{
   #modeSwitchBtn:hover { background:rgba(99,102,241,0.5); color:#fff; transform:scale(1.05); }
 
   #scoreContainer { position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); z-index:1; pointer-events:none; white-space:nowrap; display:flex; }
-  .score-1p, .score-2p { display:flex; align-items:center; background:linear-gradient(180deg, rgba(30,41,59,0.7), rgba(15,23,42,0.7)); padding:4px 15px; border-radius:16px; border:1px solid #334155; box-shadow:inset 0 0 25px rgba(0,0,0,0.5); }
-  .score-1p { gap:15px; } .score-2p { gap:15px; }
+  .score-1p, .score-2p { display:flex; align-items:center; background:linear-gradient(180deg, rgba(30,41,59,0.7), rgba(15,23,42,0.7)); padding:4px 45px; border-radius:16px; border:1px solid #334155; box-shadow:inset 0 0 25px rgba(0,0,0,0.5); }
+  .score-1p { gap:35px; } .score-2p { gap:45px; }
   .p-unit { display:flex; flex-direction:column; align-items:center; line-height:1; min-width:80px; }
   .p1-c { color:#60a5fa; text-shadow:0 0 15px rgba(59,130,246,0.8); }
   .p2-c { color:#f87171; text-shadow:0 0 15px rgba(248,113,113,0.8); }
@@ -1595,7 +1595,7 @@ window.onload=()=>{ updateModeUI(); updateUILanguage(); renderRank(); setTimeout
 </body>
 </html>
 </textarea>
-<!-- ✅ [替换] 最终统合版 Script：修复电脑误判 + PWA补全 + 图形报告 + 防崩溃 -->
+<!-- ✅ [替换] V5 完美安装版 Script：增加 Theme-Color 注入，触发地址栏安装图标 -->
     <script>
     (function() {
         // === ⬇️ 邮箱设置 ⬇️ ===
@@ -1606,25 +1606,23 @@ window.onload=()=>{ updateModeUI(); updateUILanguage(); renderRank(); setTimeout
         var pCode = document.getElementById('code-pc').value;
         
         // =========================================================
-        // 🔧 1. 设备检测逻辑 (修复触摸屏电脑误判)
+        // 🔧 1. 设备检测逻辑
         // =========================================================
         var ua = navigator.userAgent;
         var isMobile = false;
 
-        // A. 明确的移动设备标识 (白名单)
+        // A. 明确的移动设备标识
         var isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         var isAndroid = /Android/i.test(ua);
         
-        // B. 硬件特征检测 (关键修复：有鼠标=电脑)
-        // 这一步能救活 Surface 和 触摸屏笔记本
+        // B. 硬件特征检测 (有鼠标=电脑)
         var hasFinePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
 
         if (isIOS || isAndroid) {
             isMobile = true;
         } else if (hasFinePointer) {
-            isMobile = false; // 有鼠标，强制认作电脑
+            isMobile = false; // 电脑
         } else {
-            // 兜底：既非明确移动OS，又无鼠标，且屏幕窄 -> 算移动端
             isMobile = (window.innerWidth <= 1024 && navigator.maxTouchPoints > 0);
         }
 
@@ -1643,9 +1641,10 @@ window.onload=()=>{ updateModeUI(); updateUILanguage(); renderRank(); setTimeout
 
         if (finalCode.length > 50) {
             
-            // --- A. 【PWA 功能补回】防止页面重写后图标丢失 ---
-            // 这一步非常重要！确保 manifest 和 sw.js 在游戏加载后依然有效
+            // --- A. 【PWA 完美补全】 ---
+            // 关键修改：加入了 <meta name="theme-color">，这是触发 Edge 安装图标的重要条件
             var pwaPatch = `
+            <meta name="theme-color" content="#0f172a">
             <link rel="manifest" href="manifest.json">
             <link rel="apple-touch-icon" href="icon.png">
             <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1665,29 +1664,28 @@ window.onload=()=>{ updateModeUI(); updateUILanguage(); renderRank(); setTimeout
             </style>
             `;
 
-            // 注入头部补丁
+            // 注入到头部
             finalCode = finalCode.replace('</head>', pwaPatch + chartStyles + '</head>');
 
-            // --- C. 【移动端专属增强】 (修复语法错误的关键部分) ---
+            // --- C. 【移动端专属增强】 ---
             if (!isPCMode) {
-                // 1. 定义新的图形化报告逻辑
+                // 1. 定义图形化报告逻辑
                 var newReportLogic = `
-                // --- 覆盖旧的报告函数 (Append模式，防崩溃) ---
+                // --- 覆盖旧报告函数 ---
                 function generateReport(){
-                    // 1. 基础信息
                     document.getElementById('reportHeader').innerHTML = \`<span>👤 \${playerInfo.name}</span><span>🆔 \${playerInfo.id || '-'}</span>\`;
                     var acc = gameStats.total > 0 ? Math.round((gameStats.correct/gameStats.total)*100) : 0;
                     document.getElementById('repAcc').textContent = acc + "%";
                     document.getElementById('repTotal').textContent = gameStats.total;
 
-                    // 2. 智能评语 (S/A/B/C)
+                    // 评语
                     var analysisHTML = "";
                     if(acc >= 90) analysisHTML = "<div class='rep-analysis'>🌟 <b>S级 (卓越)</b><br>有机化学基础非常扎实！</div>";
                     else if(acc >= 70) analysisHTML = "<div class='rep-analysis'>👍 <b>A级 (优秀)</b><br>表现不错，建议关注下方错题。</div>";
                     else if(acc >= 50) analysisHTML = "<div class='rep-analysis'>⚠️ <b>B级 (良好)</b><br>基础尚可，反应条件需加强记忆。</div>";
                     else analysisHTML = "<div class='rep-analysis'>🛑 <b>C级 (加油)</b><br>错误较多，建议回归课本梳理转化关系。</div>";
 
-                    // 3. 动态图表数据
+                    // 图表数据
                     var dim1 = Math.min(100, Math.max(20, acc + (combo>3?10:-5)));
                     var dim2 = Math.min(100, Math.max(20, acc + (gameStats.mistakes.length<2?10:-10)));
                     var dim3 = Math.min(100, Math.max(30, (acc*0.8 + 20)));
@@ -1700,12 +1698,10 @@ window.onload=()=>{ updateModeUI(); updateUILanguage(); renderRank(); setTimeout
                     chartHTML += drawBar("熟练度", dim3, "#60a5fa");
                     chartHTML += '</div>';
 
-                    // 4. 错题列表
                     const list = document.getElementById('repWrongList'); list.innerHTML = "";
                     if(gameStats.mistakes.length === 0) list.innerHTML = "<div style='text-align:center; padding:15px; color:#4ade80'>🎉 完美！无错题！</div>";
                     else gameStats.mistakes.forEach(m=>{ list.innerHTML += \`<div class="wrong-item" style="border-left:2px solid #ef4444; padding-left:8px; margin-bottom:6px;"><div style="color:#cbd5e1;font-size:11px;">\${m.q}</div><div style="color:#ef4444;font-weight:bold;">❌ \${m.w}</div></div>\`; });
 
-                    // 5. 插入页面
                     var header = document.getElementById('reportHeader');
                     var chartArea = document.getElementById('repChartArea');
                     if(!chartArea) { chartArea = document.createElement('div'); chartArea.id = 'repChartArea'; header.parentNode.insertBefore(chartArea, header.nextSibling); }
@@ -1715,111 +1711,32 @@ window.onload=()=>{ updateModeUI(); updateUILanguage(); renderRank(); setTimeout
                 }
                 `;
                 
-                // 【核心修复】不使用 replace 修改旧代码，而是直接追加到文件末尾
-                // 这样新的函数会覆盖旧的函数，绝对不会导致手机端语法错误
                 finalCode = finalCode.replace('</body>', '<script>' + newReportLogic + '<\/script></body>');
                 
-                // 2. 布局优化 (视野调整)
+                // 2. 布局优化
                 finalCode = finalCode.replace("const topM = 110; const botM = 130;", "const topM = 60; const botM = 160;");
                 finalCode = finalCode.replace('ctx.font = "bold 13px sans-serif";', 'ctx.font = "bold 10px sans-serif";');
                 
-                // 3. 样式补丁 (修复方程式对齐)
-              // 3. 样式补丁 (修复方程式对齐 + 美化)
+                // 3. 样式补丁 (美化版)
                 var cssPatch = `
                 <style>
-                    /* 1. 容器：深色玻璃质感，增加内边距，防拥挤 */
-                    .eq-container { 
-                        display: flex !important; 
-                        flex-direction: row !important; 
-                        align-items: center !important; 
-                        justify-content: space-between !important; 
-                        gap: 4px !important; 
-                        padding: 8px 6px !important; 
-                        width: 100% !important; 
-                        box-sizing: border-box !important;
-                        background: rgba(15, 23, 42, 0.9) !important; 
-                        border-radius: 12px; 
-                        border: 1px solid rgba(255,255,255,0.15); 
-                        box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-                        margin: 0 5px 5px 5px;
-                    }
-
-                    /* 2. 左右化学式：弹性布局，垂直居中 */
-                    .eq-left, .eq-right { 
-                        flex: 1 !important; 
-                        display: flex !important; 
-                        flex-direction: column !important; 
-                        justify-content: center !important; 
-                        min-width: 0 !important; 
-                    }
-                    /* 左边靠右对齐，右边靠左对齐 (紧贴箭头) */
+                    .eq-container { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; gap: 4px !important; padding: 8px 6px !important; width: 100% !important; box-sizing: border-box !important; background: rgba(15, 23, 42, 0.9) !important; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 4px 15px rgba(0,0,0,0.4); margin: 0 5px 5px 5px; }
+                    .eq-left, .eq-right { flex: 1 !important; display: flex !important; flex-direction: column !important; justify-content: center !important; min-width: 0 !important; }
                     .eq-left { align-items: flex-end !important; text-align: right !important; padding-right: 4px !important; }
                     .eq-right { align-items: flex-start !important; text-align: left !important; padding-left: 4px !important; }
-
-                    /* 3. 中间箭头区：固定宽度 */
-                    .eq-mid { 
-                        flex: 0 0 44px !important; 
-                        width: 44px !important; 
-                        display: flex !important; 
-                        flex-direction: column !important; 
-                        align-items: center !important; 
-                        justify-content: center !important; 
-                        position: relative !important;
-                        margin: 0 !important;
-                    }
-
-                    /* 4. 反应条件：悬浮在箭头上方，金色高亮 */
-                    .eq-cond { 
-                        position: absolute !important; 
-                        top: -14px !important; 
-                        left: 50% !important;
-                        transform: translateX(-50%) !important;
-                        font-size: 10px !important; 
-                        color: #facc15 !important; 
-                        white-space: nowrap !important; 
-                        text-shadow: 0 1px 3px rgba(0,0,0,0.9); 
-                        font-weight: 800 !important;
-                        z-index: 5;
-                    }
-
-                    /* 5. 箭头线 */
-                    .eq-arrow-line { 
-                        position: relative !important; 
-                        width: 100% !important; 
-                        height: 2px !important; 
-                        background: #cbd5e1 !important; 
-                        border-radius: 2px;
-                        margin-top: 3px !important;
-                    }
-                    .eq-arrow-line::after { 
-                        content: "" !important; 
-                        position: absolute !important; 
-                        right: 0 !important; 
-                        top: -3px !important; 
-                        border-left: 5px solid #cbd5e1 !important; 
-                        border-top: 4px solid transparent !important; 
-                        border-bottom: 4px solid transparent !important; 
-                    }
-
-                    /* 6. 化学式文字：更大更清晰 */
-                    .chem-formula { 
-                        white-space: nowrap !important; 
-                        font-size: clamp(14px, 4.5vw, 20px) !important; 
-                        line-height: 1.2 !important; 
-                        font-weight: 800 !important;
-                        font-family: sans-serif !important;
-                    }
-                    
+                    .eq-mid { flex: 0 0 44px !important; width: 44px !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; position: relative !important; margin: 0 !important; }
+                    .eq-cond { position: absolute !important; top: -14px !important; left: 50% !important; transform: translateX(-50%) !important; font-size: 10px !important; color: #facc15 !important; white-space: nowrap !important; text-shadow: 0 1px 3px rgba(0,0,0,0.9); font-weight: 800 !important; z-index: 5; }
+                    .eq-arrow-line { position: relative !important; width: 100% !important; height: 2px !important; background: #cbd5e1 !important; border-radius: 2px; margin-top: 3px !important; }
+                    .eq-arrow-line::after { content: "" !important; position: absolute !important; right: 0 !important; top: -3px !important; border-left: 5px solid #cbd5e1 !important; border-top: 4px solid transparent !important; border-bottom: 4px solid transparent !important; }
+                    .chem-formula { white-space: nowrap !important; font-size: clamp(14px, 4.5vw, 20px) !important; line-height: 1.2 !important; font-weight: 800 !important; font-family: sans-serif !important; }
                     .chem-name { font-size: 9px !important; opacity: 0.7 !important; margin-top: 2px !important; color: #94a3b8 !important; }
                     .top-bar { padding: 0 !important; border: none !important; background: transparent !important; }
                 </style>`;
                 finalCode = finalCode.replace('</head>', cssPatch + '</head>');
                 
-                // 4. 邮件功能 (移动端变量名 txt)
                 var mailLogic = `window.location.href = "mailto:${myEmail}?subject=ChemSnake_Report&body=" + encodeURIComponent(txt);`;
                 finalCode = finalCode.replace("navigator.clipboard.writeText(txt)", mailLogic + " navigator.clipboard.writeText(txt)");
             } else {
-                // PC 版邮件功能 (PC端变量名 text)
                 var mailLogicPC = `window.location.href = "mailto:${myEmail}?subject=ChemSnake_Report&body=" + encodeURIComponent(text);`;
                 finalCode = finalCode.replace("navigator.clipboard.writeText(text)", mailLogicPC + " navigator.clipboard.writeText(text)");
             }
