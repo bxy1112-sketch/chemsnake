@@ -31,16 +31,16 @@
         <div>正在检测设备并加载对应版本...</div>
         <div style="font-size:12px; margin-top:5px; opacity:0.5">Detecting Device...</div>
     </div>
-    <textarea id="code-mobile">
+<textarea id="code-mobile">
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>CJ ChemSnake V75</title>
+<title>CJ ChemSnake V75 Ultimate</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <style>
   /* =================================================================
-     [Style] V75 双全版 (加速+重开)
+     [Style] V75 终极完整版 (UI对称美化 + 文件名显示 + 全功能)
      ================================================================= */
   :root {
     --bg: #0f172a;
@@ -75,10 +75,30 @@
     padding-top: env(safe-area-inset-top, 5px);
     display: flex; flex-direction: column; gap: 5px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    transition: background 0.3s;
   }
 
   .status-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: bold; color: #94a3b8; }
-  .score-badge { background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.4); padding: 2px 10px; border-radius: 99px; color: #fff; }
+  
+  /* 左侧分数徽章 */
+  .score-badge { background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.4); padding: 2px 10px; border-radius: 99px; color: #fff; display: flex; align-items: center; gap: 5px; }
+
+  /* [新增] 右侧章节/文件名徽章 (与左侧对称) */
+  .chapter-badge { 
+    background: rgba(139, 92, 246, 0.2); /*稍微带点紫色区分，也可以改成蓝色 */
+    border: 1px solid rgba(139, 92, 246, 0.4); 
+    padding: 2px 10px; 
+    border-radius: 99px; 
+    color: #fff; 
+    font-size: 12px;
+    max-width: 140px; /* 防止文件名过长 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* 超出显示省略号 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
   .eq-container {
     background: rgba(0, 0, 0, 0.4); border-radius: 10px;
@@ -219,6 +239,10 @@
   .report-val { font-size:22px; font-weight:800; color:#fff; margin-top:4px; }
   .wrong-list { max-height:120px; overflow-y:auto; text-align:left; font-size:12px; background:#020617; padding:10px; border-radius:10px; color:#94a3b8; margin-top:10px; border:1px solid #334155;}
   .wrong-item { border-bottom:1px dashed #334155; padding:6px 0; line-height:1.4; }
+  
+  /* Toggle Buttons Active State */
+  .bg-lang.inactive { opacity: 0.5; border-color: #475569; color: #64748b; }
+
 </style>
 </head>
 <body>
@@ -228,11 +252,12 @@
 <div id="hudLayer">
   <div class="top-bar">
     <div class="status-row">
-      <div style="display:flex; gap:8px; align-items:center;">
-        <span class="score-badge">🏆 <span id="scoreVal">0</span></span>
-        <span style="color:var(--accent); font-size:12px;">COMBO x<span id="comboVal">0</span></span>
+      <div class="score-badge">
+        <span>🏆</span> <span id="scoreVal">0</span>
+        <span style="color:var(--accent); font-size:10px; margin-left:3px;">x<span id="comboVal">0</span></span>
       </div>
-      <div id="chapterDisplay" style="font-size:10px; opacity:0.8; font-weight:bold; color:#a5b4fc;">ALL</div>
+      
+      <div id="chapterDisplay" class="chapter-badge">ALL</div>
     </div>
     
     <div class="eq-container">
@@ -281,24 +306,38 @@
       </svg>
       <div>
         <div class="modal-h">CJ ChemSnake</div>
-        <div class="modal-sub">Ultimate Mobile Edition</div>
+        <div class="modal-sub">Sensor Enhanced Edition</div>
       </div>
     </div>
 
     <div id="settingPanel">
       <div class="setting-row">
-        <button class="bg-lang" onclick="toggleLang()" id="langBtn">🌐 语言: 中文</button>
-        <button class="bg-lang bg-purple" onclick="document.getElementById('fileInput').click()" style="color:white; border-color:#8b5cf6;">📂 导入 / Import</button>
+        <button class="bg-lang" id="btnSound" onclick="toggleSound()">🔊 音效: ON</button>
+        <button class="bg-lang" id="btnHaptic" onclick="toggleHaptic()">📳 震动: ON</button>
       </div>
-      <select id="chapterSelect"></select>
-      <select id="diffSelect">
+
+      <div class="setting-row">
+        <button class="bg-lang" onclick="toggleLang()" id="langBtn">🌐 语言: 中文</button>
+        <button class="bg-lang bg-purple" onclick="Haptic.click(); document.getElementById('fileInput').click();" style="color:white; border-color:#8b5cf6;">📂 导入 / Import</button>
+      </div>
+
+      <select id="chapterSelect" onchange="Haptic.click()"></select>
+      
+      <select id="speedSelect" onchange="Haptic.click()">
+        <option value="300">🐢 速度: 慢 (Slow)</option>
+        <option value="200" selected>🐇 速度: 中 (Normal)</option>
+        <option value="100">🐆 速度: 快 (Fast)</option>
+        <option value="60">⚡ 速度: 极速 (Insane)</option>
+      </select>
+
+      <select id="diffSelect" onchange="Haptic.click()">
         <option value="1">Lv.1 基础 (Basic)</option>
         <option value="2">Lv.2 进阶 (Adv)</option>
         <option value="3" selected>Lv.3 挑战 (Hard)</option>
       </select>
     </div>
     <div class="btn-group">
-      <button class="btn-wide bg-blue" onclick="initGame()" id="uiStart">开始游戏</button>
+      <button class="btn-wide bg-blue" onclick="Haptic.click(); initGameWithSensors();" id="uiStart">开始游戏</button>
     </div>
   </div>
 </div>
@@ -311,10 +350,11 @@
     <div style="font-size:24px; color:#facc15; font-weight:bold; margin-bottom:15px;">
       Score: <span id="finalScore">0</span>
     </div>
+    <div style="font-size:12px; color:#64748b; margin-bottom:10px;">👋 摇一摇手机即可重开 (Shake to Replay)</div>
     <div class="btn-group">
-      <button class="btn-wide bg-blue" onclick="initGame()" id="uiReplay">再玩一次</button>
-      <button class="btn-wide bg-green" onclick="checkLogin()" id="uiReport">📊 生成学习报告</button>
-      <button class="btn-wide bg-gray" onclick="location.reload()" id="uiExit">退出</button>
+      <button class="btn-wide bg-blue" onclick="Haptic.click(); initGame();" id="uiReplay">再玩一次</button>
+      <button class="btn-wide bg-green" onclick="Haptic.click(); checkLogin();" id="uiReport">📊 生成学习报告</button>
+      <button class="btn-wide bg-gray" onclick="Haptic.click(); location.reload();" id="uiExit">退出</button>
     </div>
   </div>
 </div>
@@ -326,8 +366,8 @@
     <input id="idInput" class="modal-input" placeholder="学号 / ID" type="text" inputmode="numeric">
     
     <div class="btn-group">
-      <button class="btn-wide bg-blue" onclick="submitLogin()" id="uiConfirm">确认</button>
-      <button class="btn-wide bg-gray" onclick="closeModal('loginModal')" id="uiCancel">取消</button>
+      <button class="btn-wide bg-blue" onclick="Haptic.click(); submitLogin();" id="uiConfirm">确认</button>
+      <button class="btn-wide bg-gray" onclick="Haptic.click(); closeModal('loginModal');" id="uiCancel">取消</button>
     </div>
   </div>
 </div>
@@ -343,13 +383,13 @@
     <div style="text-align:left; font-size:12px; color:#cbd5e1; font-weight:bold; margin-bottom:5px;" id="uiMistakes">📝 错题记录</div>
     <div id="repWrongList" style="max-height:150px; overflow-y:auto; text-align:left; font-size:12px; background:#020617; padding:8px; border-radius:8px; border:1px solid #334155; color:#94a3b8;"></div>
     <div class="btn-group">
-      <button class="btn-wide bg-green" onclick="copyReport()" id="uiCopy">📋 复制报告</button>
-      <button class="btn-wide bg-gray" onclick="closeModal('reportModal')" id="uiClose">关闭</button>
+      <button class="btn-wide bg-green" onclick="Haptic.click(); copyReport();" id="uiCopy">📋 复制报告</button>
+      <button class="btn-wide bg-gray" onclick="Haptic.click(); closeModal('reportModal');" id="uiClose">关闭</button>
     </div>
   </div>
 </div>
 
-<input type="file" id="fileInput" style="display:none" accept=".json,.txt">
+<input type="file" id="fileInput" style="display:none">
 
 <audio id="bgm" src="bgm.mp3" loop></audio>
 <audio id="sfxEat" src="eat.mp3"></audio>
@@ -357,7 +397,7 @@
 <audio id="sfxClick" src="click.mp3"></audio>
 
 <script>
-/* ================= DATABASE ================= */
+/* ================= DATABASE (完全保留) ================= */
 let compoundsCore = {"CH4":{formula:"CH₄",zh:{name:"甲烷"},en:{name:"Methane"}},"C2H6":{formula:"CH₃CH₃",zh:{name:"乙烷"},en:{name:"Ethane"}},"C2H4":{formula:"CH₂=CH₂",zh:{name:"乙烯"},en:{name:"Ethene"}},"C2H2":{formula:"HC≡CH",zh:{name:"乙炔"},en:{name:"Ethyne"}},"Bz":{formula:"C₆H₆",zh:{name:"苯"},en:{name:"Benzene"}},"Toluene":{formula:"C₆H₅CH₃",zh:{name:"甲苯"},en:{name:"Toluene"}},"Styrene":{formula:"C₆H₅CH=CH₂",zh:{name:"苯乙烯"},en:{name:"Styrene"}},"Cyclohexane":{formula:"C₆H₁₂",zh:{name:"环己烷"},en:{name:"Cyclohexane"}},"13Butadiene":{formula:"C₄H₆",zh:{name:"1,3-丁二烯"},en:{name:"1,3-Butadiene"}},"CH3Cl":{formula:"CH₃Cl",zh:{name:"一氯甲烷"},en:{name:"Chloromethane"}},"C2H5Cl":{formula:"CH₃CH₂Cl",zh:{name:"氯乙烷"},en:{name:"Chloroethane"}},"C2H5Br":{formula:"CH₃CH₂Br",zh:{name:"溴乙烷"},en:{name:"Bromoethane"}},"12Dibromo":{formula:"CH₂BrCH₂Br",zh:{name:"1,2-二溴乙烷"},en:{name:"1,2-Dibromoethane"}},"BzBr":{formula:"C₆H₅Br",zh:{name:"溴苯"},en:{name:"Bromobenzene"}},"PVC_m":{formula:"CH₂=CHCl",zh:{name:"氯乙烯"},en:{name:"Vinyl Chloride"}},"EtOH":{formula:"C₂H₅OH",zh:{name:"乙醇"},en:{name:"Ethanol"}},"Glycol":{formula:"HOCH₂CH₂OH",zh:{name:"乙二醇"},en:{name:"Ethylene Glycol"}},"Phenol":{formula:"C₆H₅OH",zh:{name:"苯酚"},en:{name:"Phenol"}},"TribromoPh":{formula:"C₆H₂Br₃OH",zh:{name:"三溴苯酚"},en:{name:"Tribromophenol"}},"NaPhenolate":{formula:"C₆H₅ONa",zh:{name:"苯酚钠"},en:{name:"Sodium Phenoxide"}},"HCHO":{formula:"HCHO",zh:{name:"甲醛"},en:{name:"Methanal"}},"CH3CHO":{formula:"CH₃CHO",zh:{name:"乙醛"},en:{name:"Ethanal"}},"Glyoxal":{formula:"OHC-CHO",zh:{name:"乙二醛"},en:{name:"Glyoxal"}},"Acetone":{formula:"CH₃COCH₃",zh:{name:"丙酮"},en:{name:"Acetone"}},"BzCHO":{formula:"C₆H₅CHO",zh:{name:"苯甲醛"},en:{name:"Benzaldehyde"}},"HCOOH":{formula:"HCOOH",zh:{name:"甲酸"},en:{name:"Formic Acid"}},"AcOH":{formula:"CH₃COOH",zh:{name:"乙酸"},en:{name:"Acetic Acid"}},"OxalicAcid":{formula:"HOOC-COOH",zh:{name:"乙二酸"},en:{name:"Oxalic Acid"}},"BzOH":{formula:"C₆H₅COOH",zh:{name:"苯甲酸"},en:{name:"Benzoic Acid"}},"EtOAc":{formula:"CH₃COOC₂H₅",zh:{name:"乙酸乙酯"},en:{name:"Ethyl Acetate"}},"MeMethacrylate":{formula:"C₅H₈O₂",zh:{name:"MMA"},en:{name:"MMA"}},"SalicylicAcid":{formula:"C₇H₆O₃",zh:{name:"水杨酸"},en:{name:"Salicylic Acid"}},"Aspirin":{formula:"C₉H₈O₄",zh:{name:"阿司匹林"},en:{name:"Aspirin"}},"NitroBz":{formula:"C₆H₅NO₂",zh:{name:"硝基苯"},en:{name:"Nitrobenzene"}},"Aniline":{formula:"C₆H₅NH₂",zh:{name:"苯胺"},en:{name:"Aniline"}},"Acetanilide":{formula:"C₈H₉NO",zh:{name:"乙酰苯胺"},en:{name:"Acetanilide"}},"TNT":{formula:"TNT",zh:{name:"TNT"},en:{name:"TNT"}},"TribromoAniline":{formula:"C₆H₂Br₃NH₂",zh:{name:"三溴苯胺"},en:{name:"Tribromoaniline"}},"PE":{formula:"[CH₂-CH₂]n",zh:{name:"聚乙烯"},en:{name:"PE"}},"PVC":{formula:"[CH₂-CHCl]n",zh:{name:"聚氯乙烯"},en:{name:"PVC"}},"PS":{formula:"[CH₂-CHPh]n",zh:{name:"聚苯乙烯"},en:{name:"PS"}},"PMMA":{formula:"[PMMA]n",zh:{name:"有机玻璃"},en:{name:"PMMA"}},"PhenolicResin":{formula:"Resin",zh:{name:"酚醛树脂"},en:{name:"Phenolic Resin"}},"PET":{formula:"PET",zh:{name:"PET酯"},en:{name:"PET"}},"Rubber":{formula:"[Rubber]n",zh:{name:"顺丁橡胶"},en:{name:"Rubber"}},"CO2":{formula:"CO₂",zh:{name:"二氧化碳"},en:{name:"CO2"}},"H2O":{formula:"H₂O",zh:{name:"水"},en:{name:"Water"}}};
 let reactionsCore = [{chapter:"hydrocarbon",from:"CH4",to:"CH3Cl",type:"Substitution",cond:{zh:"Cl₂, 光照",en:"Cl₂, Light"}},{chapter:"hydrocarbon",from:"C2H4",to:"C2H6",type:"Addition",cond:{zh:"H₂, Ni, 加热",en:"H₂, Ni, Heat"}},{chapter:"hydrocarbon",from:"C2H4",to:"12Dibromo",type:"Addition",cond:{zh:"Br₂ (CCl₄)",en:"Br₂ (CCl₄)"}},{chapter:"hydrocarbon",from:"C2H4",to:"PE",type:"Polymerisation",cond:{zh:"催化剂, 高温高压",en:"Cat., High P"}},{chapter:"hydrocarbon",from:"C2H2",to:"C2H4",type:"Addition",cond:{zh:"H₂, 催化剂(控制)",en:"H₂, Cat(ctrl)"}},{chapter:"hydrocarbon",from:"Bz",to:"Cyclohexane",type:"Addition",cond:{zh:"3H₂, Ni, 加热",en:"3H₂, Ni, Heat"}},{chapter:"hydrocarbon",from:"Bz",to:"BzBr",type:"Substitution",cond:{zh:"液溴, FeBr₃",en:"Liq. Br₂, FeBr₃"}},{chapter:"halogen",from:"C2H4",to:"C2H5Br",type:"Addition",cond:{zh:"HBr",en:"HBr"}},{chapter:"halogen",from:"C2H5Br",to:"EtOH",type:"Substitution",cond:{zh:"NaOH 水溶液, 加热",en:"NaOH(aq), Heat"}},{chapter:"halogen",from:"C2H5Br",to:"C2H4",type:"Elimination",cond:{zh:"NaOH 醇溶液, 加热",en:"NaOH(alc), Heat"}},{chapter:"halogen",from:"12Dibromo",to:"Glycol",type:"Substitution",cond:{zh:"NaOH 水溶液, 加热",en:"NaOH(aq), Heat"}},{chapter:"halogen",from:"12Dibromo",to:"C2H2",type:"Elimination",cond:{zh:"NaOH 醇溶液, 加热",en:"NaOH(alc), Heat"}},{chapter:"halogen",from:"C2H2",to:"PVC_m",type:"Addition",cond:{zh:"HCl, 催化剂",en:"HCl, Cat."}},{chapter:"alcohol_phenol",from:"C2H4",to:"EtOH",type:"Addition",cond:{zh:"H₂O, 催化剂",en:"H₂O, Cat."}},{chapter:"alcohol_phenol",from:"EtOH",to:"C2H4",type:"Elimination",cond:{zh:"浓H₂SO₄, 170℃",en:"H₂SO₄, 170℃"}},{chapter:"alcohol_phenol",from:"EtOH",to:"CH3CHO",type:"Oxidation",cond:{zh:"O₂, Cu, 加热",en:"O₂, Cu, Heat"}},{chapter:"alcohol_phenol",from:"Phenol",to:"TribromoPh",type:"Substitution",cond:{zh:"浓溴水",en:"Conc. Br₂"}},{chapter:"alcohol_phenol",from:"Phenol",to:"NaPhenolate",type:"Acid-Base",cond:{zh:"NaOH 或 Na",en:"NaOH/Na"}},{chapter:"alcohol_phenol",from:"NaPhenolate",to:"Phenol",type:"Acid-Base",cond:{zh:"CO₂ + H₂O",en:"CO₂ + H₂O"}},{chapter:"alcohol_phenol",from:"BzBr",to:"NaPhenolate",type:"Substitution",cond:{zh:"NaOH, 高温高压",en:"NaOH, High P"}},{chapter:"aldehyde",from:"EtOH",to:"CH3CHO",type:"Oxidation",cond:{zh:"O₂, Cu, 加热",en:"O₂, Cu"}},{chapter:"aldehyde",from:"CH3CHO",to:"EtOH",type:"Reduction",cond:{zh:"H₂, Ni, 加热",en:"H₂, Ni"}},{chapter:"aldehyde",from:"CH3CHO",to:"AcOH",type:"Oxidation",cond:{zh:"酸性 KMnO₄",en:"Acidic KMnO₄"}},{chapter:"aldehyde",from:"CH3CHO",to:"AcOH",type:"Oxidation",cond:{zh:"银氨溶液 (银镜)",en:"Tollens'"}},{chapter:"aldehyde",from:"Glycol",to:"Glyoxal",type:"Oxidation",cond:{zh:"O₂, Cu, 加热",en:"O₂, Cu"}},{chapter:"aldehyde",from:"Glyoxal",to:"OxalicAcid",type:"Oxidation",cond:{zh:"O₂, 催化剂",en:"O₂, Cat."}},{chapter:"aldehyde",from:"Acetone",to:"Isopropanol",type:"Reduction",cond:{zh:"H₂, Ni",en:"H₂, Ni"}},{chapter:"acid_ester",from:"AcOH",to:"EtOAc",type:"Esterification",cond:{zh:"EtOH, 浓H₂SO₄",en:"EtOH, H₂SO₄"}},{chapter:"acid_ester",from:"EtOAc",to:"AcOH",type:"Hydrolysis",cond:{zh:"稀H₂SO₄, 加热",en:"Dilute H₂SO₄"}},{chapter:"acid_ester",from:"EtOAc",to:"EtOH",type:"Hydrolysis",cond:{zh:"NaOH 溶液, 加热",en:"NaOH(aq)"}},{chapter:"acid_ester",from:"Toluene",to:"BzOH",type:"Oxidation",cond:{zh:"酸性 KMnO₄",en:"Acidic KMnO₄"}},{chapter:"acid_ester",from:"SalicylicAcid",to:"Aspirin",type:"Esterification",cond:{zh:"乙酸酐",en:"Ac₂O"}},{chapter:"acid_ester",from:"Glycol",to:"PET",type:"Polycondensation",cond:{zh:"对苯二甲酸",en:"Terephthalic Acid"}},{chapter:"nitrogen",from:"Bz",to:"NitroBz",type:"Substitution",cond:{zh:"浓HNO₃/H₂SO₄",en:"Conc. HNO₃"}},{chapter:"nitrogen",from:"Toluene",to:"TNT",type:"Substitution",cond:{zh:"浓HNO₃, 加热",en:"Conc. HNO₃"}},{chapter:"nitrogen",from:"NitroBz",to:"Aniline",type:"Reduction",cond:{zh:"Fe / HCl",en:"Fe / HCl"}},{chapter:"nitrogen",from:"Aniline",to:"Acetanilide",type:"Substitution",cond:{zh:"乙酸酐/乙酰氯",en:"Ac₂O/AcCl"}},{chapter:"nitrogen",from:"Aniline",to:"TribromoAniline",type:"Substitution",cond:{zh:"浓溴水",en:"Conc. Br₂"}},{chapter:"polymer",from:"C2H4",to:"PE",type:"Polymerisation",cond:{zh:"催化剂, 高温高压",en:"Cat., High P"}},{chapter:"polymer",from:"Styrene",to:"PS",type:"Polymerisation",cond:{zh:"催化剂",en:"Catalyst"}},{chapter:"polymer",from:"PVC_m",to:"PVC",type:"Polymerisation",cond:{zh:"引发剂",en:"Initiator"}},{chapter:"polymer",from:"MeMethacrylate",to:"PMMA",type:"Polymerisation",cond:{zh:"引发剂",en:"Initiator"}},{chapter:"polymer",from:"Phenol",to:"PhenolicResin",type:"Polycondensation",cond:{zh:"HCHO, 催化剂",en:"HCHO, Cat."}},{chapter:"polymer",from:"13Butadiene",to:"Rubber",type:"Polymerisation",cond:{zh:"Na (催化)",en:"Na"}}];
 
@@ -388,9 +428,48 @@ let score=0, combo=0, currentRxn=null, mode='product', lang='zh';
 let isPaused=false, gameOver=false, gameInterval=null, speed=200;
 let playerInfo = null;
 let gameStats = { total:0, correct:0, mistakes:[] };
+let importedFileName = null; // Store imported file name
+
+// SETTINGS STATES
+let soundOn = true;
+let hapticOn = true;
+
+// SENSOR VARS
+let tilt = { x: 0, y: 0 }; 
+let lastX = 0, lastY = 0, lastZ = 0, lastShake = 0; 
+
+const Haptic = {
+  click: () => { if(hapticOn) navigator.vibrate?.(10); },
+  bump: () => { if(hapticOn) navigator.vibrate?.(30); },
+  success: () => { if(hapticOn) navigator.vibrate?.([40, 60, 40]); },
+  fail: () => { if(hapticOn) navigator.vibrate?.([50, 50, 200]); },
+  boost: () => { if(hapticOn) navigator.vibrate?.(20); },
+  explosion: () => { if(hapticOn) navigator.vibrate?.([500]); }
+};
 
 const sfx = { bgm: document.getElementById('bgm'), eat: document.getElementById('sfxEat'), die: document.getElementById('sfxDie'), click: document.getElementById('sfxClick') };
-function playSound(n) { try{ if(n==='bgm') sfx.bgm.play().catch(()=>{}); else { sfx[n].currentTime=0; sfx[n].play().catch(()=>{}); } }catch(e){} }
+function playSound(n) { 
+    if(!soundOn) return;
+    try{ 
+        if(n==='bgm') sfx.bgm.play().catch(()=>{}); 
+        else { sfx[n].currentTime=0; sfx[n].play().catch(()=>{}); } 
+    }catch(e){} 
+}
+function toggleSound() {
+    soundOn = !soundOn;
+    document.getElementById('btnSound').innerHTML = soundOn ? "🔊 音效: ON" : "🔇 音效: OFF";
+    document.getElementById('btnSound').classList.toggle('inactive', !soundOn);
+    if(!soundOn) sfx.bgm.pause();
+    else sfx.bgm.play().catch(()=>{});
+    Haptic.click();
+}
+function toggleHaptic() {
+    hapticOn = !hapticOn;
+    document.getElementById('btnHaptic').innerHTML = hapticOn ? "📳 震动: ON" : "📴 震动: OFF";
+    document.getElementById('btnHaptic').classList.toggle('inactive', !hapticOn);
+    Haptic.click();
+}
+
 function getComp(id){ if(!compoundsCore[id]) return {name:id, formula:id}; const c=compoundsCore[id]; const loc=lang==='zh'?c.zh:c.en; return {name:loc.name, formula:c.formula}; }
 function drawRoundRect(ctx, x, y, w, h, r) { if (w < 2 * r) r = w / 2; if (h < 2 * r) r = h / 2; ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
 
@@ -423,13 +502,12 @@ function updateText() {
     sel.value = cur || 'all';
 }
 
-function toggleLang() { lang = lang==='zh'?'en':'zh'; playSound('click'); updateText(); updateEqUI(); }
+function toggleLang() { lang = lang==='zh'?'en':'zh'; Haptic.click(); playSound('click'); updateText(); updateEqUI(); }
 
 function resize(){
   W=window.innerWidth; H=window.innerHeight;
   canvas.style.width=W+"px"; canvas.style.height=H+"px";
   canvas.width=W*dpr; canvas.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
-  /* [优化] 进一步压缩底部空间 (Top:110, Bot:130) */
   const topM = 110; const botM = 130; const availH = H - topM - botM;
   CELL = Math.floor(Math.min((W-20)/12, availH/15)); if(CELL>40) CELL=40; if(CELL<22) CELL=22;
   COLS = Math.floor((W-20)/CELL); ROWS = Math.floor(availH/CELL);
@@ -437,7 +515,64 @@ function resize(){
 }
 window.addEventListener('resize', resize);
 
-function initGame(){
+/* SENSOR: Gyroscope & Accelerometer Setup */
+function initSensors() {
+    if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission().then(resp => {
+            if (resp === 'granted') window.addEventListener('deviceorientation', handleOrientation);
+        }).catch(console.error);
+    } else {
+        window.addEventListener('deviceorientation', handleOrientation);
+    }
+    if (window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === 'function') {
+         DeviceMotionEvent.requestPermission().then(resp => {
+            if (resp === 'granted') window.addEventListener('devicemotion', handleMotion);
+        }).catch(console.error);
+    } else {
+         window.addEventListener('devicemotion', handleMotion);
+    }
+}
+function handleOrientation(e) {
+    let y = e.gamma || 0; 
+    let x = e.beta || 0;
+    if (x > 90) x = 90; if (x < -90) x = -90;
+    tilt.x = x * 0.5; 
+    tilt.y = y * 0.5;
+}
+function handleMotion(e) {
+    const acc = e.accelerationIncludingGravity;
+    if(!acc) return;
+    const curTime = Date.now();
+    if ((curTime - lastShake) > 100) {
+        const diff = Math.abs(acc.x + acc.y + acc.z - lastX - lastY - lastZ);
+        if (diff > 25) { 
+            if(gameOver) {
+                Haptic.success();
+                initGame();
+            }
+        }
+        lastShake = curTime;
+        lastX = acc.x; lastY = acc.y; lastZ = acc.z;
+    }
+}
+
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+        if (!gameOver && !isPaused && gameInterval) {
+            isPaused = true;
+            if(soundOn) sfx.bgm.pause();
+        }
+    } else {
+        if(!gameOver && isPaused && soundOn) sfx.bgm.play().catch(()=>{});
+    }
+});
+
+function initGameWithSensors() {
+    initSensors();
+    initGame();
+}
+
+function initGame(replay=false){
   resize(); snake=[]; 
   const sy=Math.floor(ROWS/2);
   for(let i=0;i<4;i++) snake.push({x:4-i, y:sy});
@@ -445,6 +580,9 @@ function initGame(){
   boardItems=[]; floatTexts=[]; gameOver=false; isPaused=false;
   gameStats = { total:0, correct:0, mistakes:[] };
   
+  const spdVal = document.getElementById('speedSelect')?.value;
+  speed = spdVal ? parseInt(spdVal) : 200;
+
   closeModal('mainModal'); closeModal('gameOverModal');
   playSound('bgm'); nextQuestion();
   if(gameInterval) clearInterval(gameInterval);
@@ -458,28 +596,32 @@ function gameLoop(){
   const head={x:snake[0].x+dir.x, y:snake[0].y+dir.y};
   if(head.x>=COLS) head.x=0; else if(head.x<0) head.x=COLS-1;
   if(head.y>=ROWS) head.y=0; else if(head.y<0) head.y=ROWS-1;
-  if(snake.some(s=>s.x===head.x && s.y===head.y)) { endGame("Self Collision"); return; }
+  if(snake.some(s=>s.x===head.x && s.y===head.y)) { Haptic.explosion(); endGame("Self Collision"); return; }
   snake.unshift(head);
+  
+  if(speed < 100) Haptic.boost();
+
   const idx = boardItems.findIndex(i=>i.x===head.x && i.y===head.y);
   if(idx!==-1){
     const item = boardItems[idx];
     gameStats.total++;
     if(item.isCorrect){
+      Haptic.success(); 
       playSound('eat'); combo++; score+=(10+(combo-1)*2); addFloat(head.x, head.y, `+${10+(combo-1)*2}`, '#4ade80');
       gameStats.correct++;
       boardItems=[]; nextQuestion();
     } else {
+      Haptic.fail(); 
       playSound('die'); combo=0; score=Math.max(0,score-5); addFloat(head.x, head.y, "WRONG", '#ef4444');
       snake.pop(); snake.pop(); snake.pop(); 
       gameStats.mistakes.push({ q: formatRxn(currentRxn), w: item.kind==='cond'?item.val:getComp(item.val).formula });
       boardItems=[]; nextQuestion();
     }
   } else { snake.pop(); }
-  if(snake.length===0) endGame("Died");
+  if(snake.length===0) { Haptic.explosion(); endGame("Died"); }
   draw(); updateUI();
 }
 
-/* [核心优化] 间距检测算法 (防重叠) */
 function isPositionSafe(x, y) {
     if(snake.some(s=>Math.abs(s.x-x)<2 && Math.abs(s.y-y)<2)) return false;
     for (let item of boardItems) {
@@ -514,7 +656,18 @@ function nextQuestion(){
 }
 
 function formatRxn(r){ return `${getComp(r.from).formula} + ${r.cond[lang]}`; }
-function updateUI(){ document.getElementById('scoreVal').textContent = score; document.getElementById('comboVal').textContent = combo; document.getElementById('chapterDisplay').textContent = document.getElementById('chapterSelect').options[document.getElementById('chapterSelect').selectedIndex]?.text.split(' ')[1] || 'ALL'; }
+
+// [修改] UpdateUI Logic to show filename if imported
+function updateUI(){ 
+    document.getElementById('scoreVal').textContent = score; 
+    document.getElementById('comboVal').textContent = combo; 
+    
+    // Check if imported filename exists, otherwise show chapter name
+    const chapterText = document.getElementById('chapterSelect').options[document.getElementById('chapterSelect').selectedIndex]?.text.split(' ')[1] || 'ALL';
+    const displayText = importedFileName ? `📂 ${importedFileName}` : chapterText;
+    
+    document.getElementById('chapterDisplay').textContent = displayText; 
+}
 
 function updateEqUI(){
     if(!currentRxn) return;
@@ -533,17 +686,21 @@ function updateEqUI(){
 function draw(){
   const th = { Substitution:'#1e3a8a', Addition:'#064e3b', Oxidation:'#7f1d1d' }[currentRxn?.type] || '#1e293b';
   const g = ctx.createLinearGradient(0,0,W,H); g.addColorStop(0,"#020617"); g.addColorStop(1,th); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-  ctx.strokeStyle="rgba(255,255,255,0.05)"; ctx.lineWidth=1; ctx.beginPath();
+
+  // Parallax
+  const pX = -tilt.y * 0.5; const pY = -tilt.x * 0.5;
+  ctx.save(); ctx.translate(pX, pY);
+
+  ctx.strokeStyle="rgba(255,255,255,0.08)"; ctx.lineWidth=1; ctx.beginPath();
   for(let x=0;x<=COLS;x++){ ctx.moveTo(OFF_X+x*CELL,OFF_Y); ctx.lineTo(OFF_X+x*CELL,OFF_Y+ROWS*CELL); }
   for(let y=0;y<=ROWS;y++){ ctx.moveTo(OFF_X,OFF_Y+y*CELL); ctx.lineTo(OFF_X+COLS*CELL,OFF_Y+y*CELL); } ctx.stroke();
-  ctx.strokeStyle="rgba(255,255,255,0.2)"; ctx.lineWidth=2; ctx.strokeRect(OFF_X,OFF_Y,COLS*CELL,ROWS*CELL);
+  ctx.strokeStyle="rgba(255,255,255,0.3)"; ctx.lineWidth=2; ctx.strokeRect(OFF_X,OFF_Y,COLS*CELL,ROWS*CELL);
   
   boardItems.forEach(i=>{
     const cx=OFF_X+i.x*CELL, cy=OFF_Y+i.y*CELL;
     ctx.shadowBlur=15; ctx.shadowColor="#facc15"; ctx.fillStyle="rgba(250,204,21,0.2)"; ctx.strokeStyle="#facc15"; ctx.lineWidth=2; 
     drawRoundRect(ctx, cx+2, cy+2, CELL-4, CELL-4, 6); ctx.fill(); ctx.stroke(); ctx.shadowBlur=0;
     
-    /* [核心] 气泡绘制：双行 */
     let line1 = "", line2 = "";
     if(i.kind==='cond') line1 = i.val;
     else { const c = getComp(i.val); line1 = c.formula; line2 = c.name; }
@@ -556,6 +713,7 @@ function draw(){
     let lx = cx + CELL/2, ly = cy - 12;
     if(i.y < 2) ly = cy + CELL + 22; if(lx - w/2 < OFF_X) lx = OFF_X + w/2 + 2; if(lx + w/2 > OFF_X + COLS*CELL) lx = OFF_X + COLS*CELL - w/2 - 2;
     
+    ctx.save(); ctx.translate(pX * 0.5, pY * 0.5); 
     ctx.fillStyle="rgba(15,23,42,0.95)"; drawRoundRect(ctx, lx-w/2, ly-hBox/2, w, hBox, 6); ctx.fill();
     ctx.textAlign="center"; ctx.textBaseline="middle";
     if (line2) {
@@ -564,13 +722,18 @@ function draw(){
     } else {
         ctx.fillStyle="#fff"; ctx.font="bold 12px sans-serif"; ctx.fillText(line1, lx, ly);
     }
+    ctx.restore();
   });
-
+  ctx.restore(); 
+  
+  ctx.save(); ctx.translate(pX * 0.2, pY * 0.2); 
   snake.forEach((p,i)=>{
     const cx=OFF_X+p.x*CELL+CELL/2, cy=OFF_Y+p.y*CELL+CELL/2, r=CELL/2-2;
     ctx.fillStyle = i===0?"#60a5fa":"#3b82f6"; if(i===0){ ctx.shadowBlur=15; ctx.shadowColor="#60a5fa"; } else ctx.shadowBlur=0; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
     if(i===0){ ctx.fillStyle="white"; ctx.beginPath(); ctx.arc(cx+dir.y*4-dir.x*4, cy+dir.x*4-dir.y*4, 3, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(cx+dir.y*4+dir.x*4, cy+dir.x*4+dir.y*4, 3, 0, Math.PI*2); ctx.fill(); }
   });
+  ctx.restore();
+
   floatTexts.forEach(f=>{ ctx.fillStyle=f.c; ctx.font="bold 16px sans-serif"; ctx.fillText(f.t, OFF_X+f.x*CELL+CELL/2, OFF_Y+f.y*CELL); f.y-=0.05; f.life--; }); floatTexts=floatTexts.filter(f=>f.life>0);
 }
 function addFloat(x,y,t,c){ floatTexts.push({x,y,t,c,life:20}); }
@@ -602,10 +765,11 @@ function copyReport(){
     navigator.clipboard.writeText(txt).then(()=>alert("Copied!"));
 }
 
-/* [NEW] Import logic */
+/* [修改] Import logic to capture filename */
 document.getElementById('fileInput').onchange = function(e) {
     const file = e.target.files[0];
     if(!file) return;
+    importedFileName = file.name; // Capture filename
     const reader = new FileReader();
     reader.onload = function(e) {
         try {
@@ -615,6 +779,7 @@ document.getElementById('fileInput').onchange = function(e) {
                 reactionsCore = data.reactions;
                 alert("Import Successful!");
                 updateText(); 
+                updateUI(); // Trigger UI update to show filename
             }
         } catch(err) { alert("Invalid File"); }
     };
@@ -624,22 +789,23 @@ document.getElementById('fileInput').onchange = function(e) {
 const bindTouch = (id, fn, type='mousedown') => { 
     const el = document.getElementById(id); 
     if(!el) return;
-    // 统一触摸和鼠标
     const startEvt = (type === 'mousedown') ? 'mousedown' : 'touchstart';
     const endEvt = (type === 'mousedown') ? 'mouseup' : 'touchend';
     
     if(type === 'click') {
         el.addEventListener('click', (e) => { e.preventDefault(); fn(); });
-        el.addEventListener('touchstart', (e) => { e.preventDefault(); fn(); }); // Mobile tap
+        el.addEventListener('touchstart', (e) => { e.preventDefault(); fn(); }); 
     } else if (type === 'hold') {
-        // For boost button
         el.addEventListener('touchstart', (e) => { e.preventDefault(); fn('start'); });
         el.addEventListener('touchend', (e) => { e.preventDefault(); fn('end'); });
         el.addEventListener('mousedown', (e) => { e.preventDefault(); fn('start'); });
         el.addEventListener('mouseup', (e) => { e.preventDefault(); fn('end'); });
     } else {
-        // Directional tap
-        el.addEventListener('touchstart', (e)=>{e.preventDefault();fn();if(navigator.vibrate)navigator.vibrate(10);},{passive:false});
+        el.addEventListener('touchstart', (e)=>{
+             e.preventDefault(); 
+             Haptic.click(); 
+             fn();
+        },{passive:false});
         el.addEventListener('mousedown', (e)=>{e.preventDefault();fn();});
     }
 };
@@ -659,15 +825,22 @@ const setSpeed = (s) => {
     }
 };
 bindTouch('btn-boost', (state) => {
-    if(state === 'start') setSpeed(80); // Fast
-    else setSpeed(200); // Normal
+    if(state === 'start') {
+        Haptic.bump(); 
+        setSpeed(80); 
+    }
+    else {
+        // Restore to user selected speed
+        const spdVal = document.getElementById('speedSelect')?.value;
+        const baseSpeed = spdVal ? parseInt(spdVal) : 200;
+        setSpeed(baseSpeed); 
+    }
 }, 'hold');
 
-bindTouch('btn-restart', ()=> initGame(true), 'click');
-bindTouch('btn-pause', ()=> { isPaused=!isPaused; }, 'click'); 
-bindTouch('btn-setting', ()=> { endGame("Manual Exit"); }, 'click');
+bindTouch('btn-restart', ()=> { Haptic.click(); initGame(true); }, 'click');
+bindTouch('btn-pause', ()=> { Haptic.click(); isPaused=!isPaused; }, 'click'); 
+bindTouch('btn-setting', ()=> { Haptic.click(); endGame("Manual Exit"); }, 'click');
 
-/* Start */
 window.onload = function() {
     updateText(); 
     resize();
@@ -686,8 +859,7 @@ document.addEventListener('keydown', e=>{
 </body>
 </html>
 </textarea>
-
-    <textarea id="code-pc">
+<textarea id="code-pc">
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -726,8 +898,8 @@ document.addEventListener('keydown', e=>{
   #modeSwitchBtn:hover { background:rgba(99,102,241,0.5); color:#fff; transform:scale(1.05); }
 
   #scoreContainer { position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); z-index:1; pointer-events:none; white-space:nowrap; display:flex; }
-  .score-1p, .score-2p { display:flex; align-items:center; background:linear-gradient(180deg, rgba(30,41,59,0.7), rgba(15,23,42,0.7)); padding:4px 45px; border-radius:16px; border:1px solid #334155; box-shadow:inset 0 0 25px rgba(0,0,0,0.5); }
-  .score-1p { gap:35px; } .score-2p { gap:45px; }
+  .score-1p, .score-2p { display:flex; align-items:center; background:linear-gradient(180deg, rgba(30,41,59,0.7), rgba(15,23,42,0.7)); padding:4px 15px; border-radius:16px; border:1px solid #334155; box-shadow:inset 0 0 25px rgba(0,0,0,0.5); }
+  .score-1p { gap:15px; } .score-2p { gap:15px; }
   .p-unit { display:flex; flex-direction:column; align-items:center; line-height:1; min-width:80px; }
   .p1-c { color:#60a5fa; text-shadow:0 0 15px rgba(59,130,246,0.8); }
   .p2-c { color:#f87171; text-shadow:0 0 15px rgba(248,113,113,0.8); }
@@ -834,7 +1006,7 @@ document.addEventListener('keydown', e=>{
 <body>
 
 <div id="toast">✅ Report Copied to Clipboard!</div>
-<input type="file" id="fileInput" style="display:none" accept=".json,.txt">
+<input type="file" id="fileInput" style="display:none" accept="*/*">
 
 <div id="infoPanel">
   <div class="header-row">
@@ -1075,6 +1247,8 @@ let lastRxn = null;
 let usedRxnIndices = []; 
 
 let gameStats = { playerInfo: null, startTime: 0, endTime: 0, totalQs: 0, correctCount: 0, wrongCount: 0, maxCombo: 0, byChapter: {}, byType: {}, mistakes: [] };
+// [NEW] Global variable for imported file name
+let importedFileName = null; 
 
 let isBgmOn=false, isSfxOn=false;
 let timedMode=false, timeLeft=0, timerId=null;
@@ -1129,8 +1303,27 @@ function updateUILanguage() {
     document.getElementById('importBtn').textContent = t.importBtn;
 
     const currentVal = ui.chapterSelect.value; ui.chapterSelect.innerHTML = "";
-    for (const [key, val] of Object.entries(t.chapters)) { const opt = document.createElement('option'); opt.value = key; opt.textContent = val; ui.chapterSelect.appendChild(opt); }
-    ui.chapterSelect.value = currentVal || 'all';
+    
+    // [NEW] Logic to handle imported filename display
+    if (importedFileName) {
+        // If imported, create a special option
+        const opt = document.createElement('option');
+        opt.value = 'imported';
+        opt.textContent = `📂 ${importedFileName}`;
+        ui.chapterSelect.appendChild(opt);
+        ui.chapterSelect.disabled = true; // Lock selection for imported file
+    } else {
+        // Normal chapters
+        ui.chapterSelect.disabled = false;
+        for (const [key, val] of Object.entries(t.chapters)) { 
+            const opt = document.createElement('option'); 
+            opt.value = key; 
+            opt.textContent = val; 
+            ui.chapterSelect.appendChild(opt); 
+        }
+        ui.chapterSelect.value = currentVal || 'all';
+    }
+    
     updateModeUI(); updateEqUI();
 }
 
@@ -1229,7 +1422,16 @@ function spawnOneDistractor(){
 
 function nextQuestion(){
   const chapter = ui.chapterSelect.value; let activeIndices = [];
-  if(chapter === 'all') { activeIndices = reactionsCore.map((_, i) => i); } else { activeIndices = reactionsCore.map((r, i) => (r.chapter === chapter ? i : -1)).filter(i => i !== -1); }
+  
+  // If imported file, always use all available questions in data
+  if (importedFileName) {
+      activeIndices = reactionsCore.map((_, i) => i);
+  } else if(chapter === 'all') { 
+      activeIndices = reactionsCore.map((_, i) => i); 
+  } else { 
+      activeIndices = reactionsCore.map((r, i) => (r.chapter === chapter ? i : -1)).filter(i => i !== -1); 
+  }
+  
   let availableIndices = activeIndices.filter(i => !usedRxnIndices.includes(i));
   if(availableIndices.length === 0){ if(activeIndices.length === 0) { currentRxn = reactionsCore[0]; } else { usedRxnIndices = usedRxnIndices.filter(i => !activeIndices.includes(i)); availableIndices = activeIndices; } }
   let nextIdx = -1;
@@ -1359,7 +1561,34 @@ function updateModalFocus(){ modalFocusables.forEach((el,i)=>{ if(i===modalFocus
 function triggerModalFocus(){ if(modalFocusables[modalFocusIndex]) { const el = modalFocusables[modalFocusIndex]; if(el.tagName === 'INPUT'){ el.focus(); activeKeyboardInput = el; } else { el.click(); } setTimeout(()=>updateModalFocus(), 100); } }
 function moveModalFocus(delta){ let next = modalFocusIndex + delta; if(next < 0) next = modalFocusables.length - 1; if(next >= modalFocusables.length) next = 0; modalFocusIndex = next; updateModalFocus(); playSfx('click'); }
 
-function endGame(reason){ if(gameOver) return; gameOver = true; toggleBGM(false); if(gameInterval) clearInterval(gameInterval); gameStats.endTime = Date.now(); let w = i18n[lang].draw; const t = i18n[lang]; let icon = "🤝"; if(modePlayers===2){ if (snake1.length === 0) { w = "P2"; icon = "🏆"; playSfx('win'); } else if (snake2.length === 0) { w = "P1"; icon = "🏆"; playSfx('win'); } else if (scoreP1 > scoreP2) { w = "P1"; icon = "🏆"; playSfx('win'); } else if (scoreP2 > scoreP1) { w = "P2"; icon = "🏆"; playSfx('win'); } } else { w = "Player"; icon = "😭"; } showGameOverModal(w, reason, icon); }
+function endGame(reason){ 
+    if(gameOver) return; 
+    
+    // ✅ [震动修复] 放在最前。胜利震动多次，失败长震动。
+    if(navigator.vibrate) navigator.vibrate(reason.includes("Win") || reason.includes("获胜") ? [100,50,100,50,100] : 500);
+
+    gameOver = true; 
+    toggleBGM(false); 
+    // ... 后面的代码保持不变 ...
+    if(gameInterval) clearInterval(gameInterval); 
+    gameStats.endTime = Date.now(); 
+    
+    let w = i18n[lang].draw; 
+    const t = i18n[lang]; 
+    let icon = "🤝"; 
+    
+    // 判断胜负逻辑
+    if(modePlayers===2){ 
+        if (snake1.length === 0) { w = "P2"; icon = "🏆"; playSfx('win'); } 
+        else if (snake2.length === 0) { w = "P1"; icon = "🏆"; playSfx('win'); } 
+        else if (scoreP1 > scoreP2) { w = "P1"; icon = "🏆"; playSfx('win'); } 
+        else if (scoreP2 > scoreP1) { w = "P2"; icon = "🏆"; playSfx('win'); } 
+    } else { 
+        w = "Player"; icon = "😭"; 
+    } 
+
+    showGameOverModal(w, reason, icon); 
+}
 function showGameOverModal(winner, reason, icon){ closeAllModals(); const div = document.createElement('div'); div.id = "gameOverModal"; div.className = "modal-mask"; const t = i18n[lang]; const wText = (modePlayers===1) ? t.gameOver : (winner===t.draw?t.draw:(winner+t.wins)); div.innerHTML = `<div class="modal-box"><div class="modal-icon-area">${icon}</div><div class="modal-h">${wText}</div><div class="modal-sub">${reason}</div><div style="margin-bottom:30px; font-size:24px; color:#facc15; font-weight:bold;">${modePlayers===1 ? `${t.score}: ${scoreP1}` : `P1: ${scoreP1} | P2: ${scoreP2}`}</div><div class="btn-group"><button class="btn-action" onclick="initGame(true)">${t.playAgain}</button><button class="btn-sub btn-report" onclick="checkLoginBeforeReport()">${t.report}</button><button class="btn-sub btn-clear" onclick="closeAllModals()">${t.close}</button></div></div>`; document.body.appendChild(div); openModalMode("gameOverModal"); }
 
 function checkLoginBeforeReport() { if(gameStats.playerInfo) showReportModal(); else showLoginModal(); }
@@ -1534,6 +1763,10 @@ document.getElementById('importBtn').onclick = () => document.getElementById('fi
 document.getElementById('fileInput').onchange = function(e) {
     const file = e.target.files[0];
     if (!file) return;
+    
+    // [NEW] Capture Filename
+    importedFileName = file.name;
+
     const reader = new FileReader();
     reader.onload = function(e) {
         try {
@@ -1541,6 +1774,10 @@ document.getElementById('fileInput').onchange = function(e) {
             if (data.compounds) compoundsCore = data.compounds;
             if (data.reactions) reactionsCore = data.reactions;
             alert(i18n[lang].importSuccess || "Import Successful!");
+            
+            // Trigger UI update
+            updateUILanguage();
+            
             initGame(true); 
         } catch (err) {
             alert(i18n[lang].importFail || "Import Failed! Check JSON format.");
@@ -1595,7 +1832,8 @@ window.onload=()=>{ updateModeUI(); updateUILanguage(); renderRank(); setTimeout
 </body>
 </html>
 </textarea>
-<!-- ✅ [替换] V5 完美安装版 Script：增加 Theme-Color 注入，触发地址栏安装图标 -->
+<!-- ✅ [替换] 最终统合版 Script：修复电脑误判 + PWA补全 + 图形报告 + 防崩溃 -->
+<!-- ✅ [替换] V15.0 终极修正：消除空隙 + 完美居中 + 智能长文字适配 -->
     <script>
     (function() {
         // === ⬇️ 邮箱设置 ⬇️ ===
@@ -1605,30 +1843,22 @@ window.onload=()=>{ updateModeUI(); updateUILanguage(); renderRank(); setTimeout
         var mCode = document.getElementById('code-mobile').value;
         var pCode = document.getElementById('code-pc').value;
         
-        // =========================================================
-        // 🔧 1. 设备检测逻辑
-        // =========================================================
+        // 1. 设备检测
         var ua = navigator.userAgent;
         var isMobile = false;
-
-        // A. 明确的移动设备标识
         var isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         var isAndroid = /Android/i.test(ua);
-        
-        // B. 硬件特征检测 (有鼠标=电脑)
         var hasFinePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
 
         if (isIOS || isAndroid) {
             isMobile = true;
         } else if (hasFinePointer) {
-            isMobile = false; // 电脑
+            isMobile = false;
         } else {
             isMobile = (window.innerWidth <= 1024 && navigator.maxTouchPoints > 0);
         }
 
-        // =========================================================
-        // 🚀 2. 代码处理与功能注入
-        // =========================================================
+        // 2. 代码处理
         var finalCode = "";
         var isPCMode = false;
         
@@ -1641,10 +1871,8 @@ window.onload=()=>{ updateModeUI(); updateUILanguage(); renderRank(); setTimeout
 
         if (finalCode.length > 50) {
             
-            // --- A. 【PWA 完美补全】 ---
-            // 关键修改：加入了 <meta name="theme-color">，这是触发 Edge 安装图标的重要条件
+            // --- A. PWA 补全 ---
             var pwaPatch = `
-            <meta name="theme-color" content="#0f172a">
             <link rel="manifest" href="manifest.json">
             <link rel="apple-touch-icon" href="icon.png">
             <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1652,7 +1880,7 @@ window.onload=()=>{ updateModeUI(); updateUILanguage(); renderRank(); setTimeout
             <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js');});}<\/script>
             `;
             
-            // --- B. 【图表报告样式】 ---
+            // --- B. 图表样式 ---
             var chartStyles = `
             <style>
                 .rep-chart-row { display:flex; align-items:center; margin:6px 0; font-size:11px; }
@@ -1664,28 +1892,24 @@ window.onload=()=>{ updateModeUI(); updateUILanguage(); renderRank(); setTimeout
             </style>
             `;
 
-            // 注入到头部
             finalCode = finalCode.replace('</head>', pwaPatch + chartStyles + '</head>');
 
-            // --- C. 【移动端专属增强】 ---
+            // --- C. 移动端专属调整 ---
             if (!isPCMode) {
-                // 1. 定义图形化报告逻辑
+                // 1. 图形化报告
                 var newReportLogic = `
-                // --- 覆盖旧报告函数 ---
                 function generateReport(){
                     document.getElementById('reportHeader').innerHTML = \`<span>👤 \${playerInfo.name}</span><span>🆔 \${playerInfo.id || '-'}</span>\`;
                     var acc = gameStats.total > 0 ? Math.round((gameStats.correct/gameStats.total)*100) : 0;
                     document.getElementById('repAcc').textContent = acc + "%";
                     document.getElementById('repTotal').textContent = gameStats.total;
 
-                    // 评语
                     var analysisHTML = "";
                     if(acc >= 90) analysisHTML = "<div class='rep-analysis'>🌟 <b>S级 (卓越)</b><br>有机化学基础非常扎实！</div>";
                     else if(acc >= 70) analysisHTML = "<div class='rep-analysis'>👍 <b>A级 (优秀)</b><br>表现不错，建议关注下方错题。</div>";
                     else if(acc >= 50) analysisHTML = "<div class='rep-analysis'>⚠️ <b>B级 (良好)</b><br>基础尚可，反应条件需加强记忆。</div>";
                     else analysisHTML = "<div class='rep-analysis'>🛑 <b>C级 (加油)</b><br>错误较多，建议回归课本梳理转化关系。</div>";
 
-                    // 图表数据
                     var dim1 = Math.min(100, Math.max(20, acc + (combo>3?10:-5)));
                     var dim2 = Math.min(100, Math.max(20, acc + (gameStats.mistakes.length<2?10:-10)));
                     var dim3 = Math.min(100, Math.max(30, (acc*0.8 + 20)));
@@ -1710,30 +1934,158 @@ window.onload=()=>{ updateModeUI(); updateUILanguage(); renderRank(); setTimeout
                     closeModal('gameOverModal'); openModal('reportModal');
                 }
                 `;
-                
                 finalCode = finalCode.replace('</body>', '<script>' + newReportLogic + '<\/script></body>');
                 
-                // 2. 布局优化
-                finalCode = finalCode.replace("const topM = 110; const botM = 130;", "const topM = 60; const botM = 160;");
+                // 2. ⚡️ 画布位置精准修正 (135px) ⚡️
+                // 45px(状态栏) + 90px(方程式) = 135px，消除空隙
+                finalCode = finalCode.replace(
+                    /const topM\s*=\s*\d+;\s*const botM\s*=\s*\d+;/, 
+                    "const topM = 135; const botM = 140;"
+                );
+                
+                // 字体加粗
                 finalCode = finalCode.replace('ctx.font = "bold 13px sans-serif";', 'ctx.font = "bold 10px sans-serif";');
+
+// 3. 样式补丁 (V29.0: 修复不对称 + 盒子模型修正 + 玻璃态美化)
+var cssPatch = `
+<style>
+    /* 【核心修复】全局开启盒子模型，彻底解决“左边有缝右边没缝”的宽度溢出问题 */
+    * {
+        box-sizing: border-box;
+    }
+
+    /* --- 1. HUD 顶部栏配置 --- */
+    .top-bar { 
+        padding-top: 45px !important; 
+        padding-bottom: 0px !important; 
+        padding-left: 0px !important;
+        padding-right: 0px !important;
+        border: none !important; 
+        background: #0f172a !important; 
+        z-index: 100 !important;
+        position: relative !important;
+        box-shadow: none !important; 
+        width: 100% !important;
+        display: block !important;
+    }
+
+    /* --- 2. 化学式容器 --- */
+    .eq-container { 
+        display: flex !important; 
+        flex-direction: row !important; 
+        align-items: flex-end !important;
+        justify-content: center !important; 
+        
+        /* 宽度控制：100% 配合 border-box 确保不溢出 */
+        width: 100% !important;
+        margin: 0 !important;
+        
+        /* 增加一点左右内边距，防止文字贴屏幕边缘太紧 */
+        padding: 8px 12px 20px 12px !important; 
+        
+        /* 【美化】背景：使用半透明玻璃态 + 渐变，提升高级感 */
+        background: linear-gradient(180deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 1) 100%) !important;
+        
+        /* 【美化】底部过渡：更柔和的青蓝光晕，不再是一条死线 */
+        border-bottom: 1px solid rgba(56, 189, 248, 0.1) !important;
+        box-shadow: 0 10px 30px -10px rgba(56, 189, 248, 0.15); 
+        
+        z-index: 50;
+        position: relative;
+    }
+
+    /* --- 3. 左右区域布局 --- */
+    .eq-left, .eq-right { 
+        flex: 1 1 0% !important;
+        display: flex !important; 
+        flex-direction: column !important; 
+        justify-content: flex-end !important; 
+        align-items: center !important; 
+        min-width: 0 !important; 
+        padding: 0 !important;
+        overflow: visible !important; 
+    }
+
+    /* --- 4. 箭头区域 --- */
+    .eq-mid { 
+        flex: 0 0 16% !important;      
+        min-width: 40px !important;    
+        max-width: 70px !important;    
+        position: relative !important;
+        margin: 0 4px !important; /* 稍微拉开点距离 */
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        padding-bottom: 3px !important;
+    }
+
+    /* --- 5. 反应条件 --- */
+    .eq-cond { 
+        position: absolute !important; 
+        bottom: 11px !important; 
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 250% !important;        
+        text-align: center !important;
+        font-size: 8.5px !important; 
+        line-height: 1 !important;
+        color: #facc15 !important; 
+        white-space: nowrap !important; 
+        pointer-events: none;
+        text-shadow: 0 0 8px rgba(250, 204, 21, 0.4); /* 增强发光 */
+    }
+
+    /* --- 6. 箭头线 --- */
+    .eq-arrow-line { 
+        width: 100% !important; 
+        height: 1px !important;
+        background: rgba(148, 163, 184, 0.4) !important; 
+        margin-bottom: 5px !important;
+        position: relative !important;
+    }
+    .eq-arrow-line::after { 
+        content: "" !important; 
+        position: absolute !important; 
+        right: -1px !important; 
+        top: -2px !important;
+        border-left: 4px solid rgba(148, 163, 184, 0.4) !important; 
+        border-top: 3px solid transparent !important; 
+        border-bottom: 3px solid transparent !important; 
+    }
+
+    /* --- 7. 字体与对齐优化 --- */
+    .chem-formula { 
+        font-size: clamp(10px, 3vw, 16px) !important;
+        font-weight: 700 !important; 
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
+        word-break: keep-all !important; 
+        overflow: visible !important;   
+        width: auto !important;
+        text-align: center !important;
+        letter-spacing: -0.5px !important; 
+        color: #f8fafc !important; 
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5); /* 加深阴影，提升对比度 */
+    }
+    
+    .chem-name { 
+        font-size: 10px !important;  
+        opacity: 0.8 !important;    
+        margin-top: 2px !important; 
+        color: #cbd5e1 !important; 
+        display: block !important;
+        width: auto !important;
+        text-align: center !important;
+        white-space: nowrap !important; 
+        transform: none !important;
+    }
+</style>`;
+
+// 注入样式
+finalCode = finalCode.replace('</head>', cssPatch + '</head>');
                 
-                // 3. 样式补丁 (美化版)
-                var cssPatch = `
-                <style>
-                    .eq-container { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; gap: 4px !important; padding: 8px 6px !important; width: 100% !important; box-sizing: border-box !important; background: rgba(15, 23, 42, 0.9) !important; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 4px 15px rgba(0,0,0,0.4); margin: 0 5px 5px 5px; }
-                    .eq-left, .eq-right { flex: 1 !important; display: flex !important; flex-direction: column !important; justify-content: center !important; min-width: 0 !important; }
-                    .eq-left { align-items: flex-end !important; text-align: right !important; padding-right: 4px !important; }
-                    .eq-right { align-items: flex-start !important; text-align: left !important; padding-left: 4px !important; }
-                    .eq-mid { flex: 0 0 44px !important; width: 44px !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; position: relative !important; margin: 0 !important; }
-                    .eq-cond { position: absolute !important; top: -14px !important; left: 50% !important; transform: translateX(-50%) !important; font-size: 10px !important; color: #facc15 !important; white-space: nowrap !important; text-shadow: 0 1px 3px rgba(0,0,0,0.9); font-weight: 800 !important; z-index: 5; }
-                    .eq-arrow-line { position: relative !important; width: 100% !important; height: 2px !important; background: #cbd5e1 !important; border-radius: 2px; margin-top: 3px !important; }
-                    .eq-arrow-line::after { content: "" !important; position: absolute !important; right: 0 !important; top: -3px !important; border-left: 5px solid #cbd5e1 !important; border-top: 4px solid transparent !important; border-bottom: 4px solid transparent !important; }
-                    .chem-formula { white-space: nowrap !important; font-size: clamp(14px, 4.5vw, 20px) !important; line-height: 1.2 !important; font-weight: 800 !important; font-family: sans-serif !important; }
-                    .chem-name { font-size: 9px !important; opacity: 0.7 !important; margin-top: 2px !important; color: #94a3b8 !important; }
-                    .top-bar { padding: 0 !important; border: none !important; background: transparent !important; }
-                </style>`;
-                finalCode = finalCode.replace('</head>', cssPatch + '</head>');
-                
+                // 4. 邮件功能
                 var mailLogic = `window.location.href = "mailto:${myEmail}?subject=ChemSnake_Report&body=" + encodeURIComponent(txt);`;
                 finalCode = finalCode.replace("navigator.clipboard.writeText(txt)", mailLogic + " navigator.clipboard.writeText(txt)");
             } else {
