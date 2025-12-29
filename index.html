@@ -736,7 +736,8 @@ function draw(){
   
   const g = ctx.createLinearGradient(0,0,W,H); g.addColorStop(0,"#020617"); g.addColorStop(1,th); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
 
-  const pX = -tilt.y * 0.5; const pY = -tilt.x * 0.5;
+  // ✅ [关键修改] 强制去除重力感应造成的画布位移效果 (但仍保留传感器数据供摇一摇使用)
+  const pX = 0; const pY = 0; 
   ctx.save(); ctx.translate(pX, pY);
 
   ctx.strokeStyle="rgba(255,255,255,0.08)"; ctx.lineWidth=1; ctx.beginPath();
